@@ -28,6 +28,12 @@
                 <h3>📝 Solicitar Cadastro TIMED </h3>
                 <p>Para novos colaboradores. Requer envio de documentos e dados funcionais.</p>
             </div>
+
+           
+            <div class="menu-card" onclick="mostrarTela('tela-login-ad')">
+                <h3>💻 Solicitar Login de Computador</h3>
+                <p>Solicite seu usuário e senha para acessar os computadores da rede.</p>
+            </div>
             
             <div class="menu-card" onclick="mostrarTela('tela-treinamento')">
                 <h3>🎓 Solicitar Treinamento</h3>
@@ -35,7 +41,7 @@
             </div>
 
             <!-- LINK WHATSAPP -->
-            <a href="https://chat.whatsapp.com/SEU_LINK_AQUI" target="_blank" style="text-decoration: none;">
+            <a href="https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R" target="_blank" style="text-decoration: none;">
                 <div class="menu-card whatsapp">
                     <h3>💬 Abrir Chamado (Suporte)</h3>
                     <p>Fale diretamente com nossa equipe no grupo de suporte rápido.</p>
@@ -161,6 +167,33 @@
                 </div>
 
                 <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação de Cadastro</button>
+            </form>
+        </div>
+
+        <!-- TELA 3: FORMULÁRIO DE LOGIN AD -->
+        <div id="tela-login-ad" class="form-section">
+            <div class="form-header">
+                <h2>Solicitar Login de Computador (AD)</h2>
+                <button type="button" class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
+            </div>
+
+            <!-- Aviso Importante em Destaque -->
+            <div class="alert-warning">
+                <strong>⚠️ Atenção:</strong> Para os andares 2 / 3 / 10 UPI e UPE 3 Andar Ambulatório, a senha e usuário são padrão. Por favor, solicite diretamente à chefia do setor.
+            </div>
+
+            <form id="form-ad" onsubmit="enviarLoginAD(event)">
+                <div class="form-group mt-15">
+                    <label for="ad_nome">Nome Completo *</label>
+                    <input type="text" id="ad_nome" placeholder="Seu nome completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ad_cpf">CPF *</label>
+                    <input type="text" id="ad_cpf" maxlength="14" oninput="mascaraCPF(this)" placeholder="000.000.000-00" required>
+                </div>
+
+                <button type="submit" id="btn-submit-ad" class="submit-btn">Enviar Solicitação de Login</button>
             </form>
         </div>
 
