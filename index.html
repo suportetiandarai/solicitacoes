@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Serviços T.I</title>
+    
+    <!-- Fontes e Bibliotecas Externas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+
+    <!-- Nosso arquivo CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Central de Serviços T.I</h1>
+        <p>Preencha os formulários abaixo ou acesse nosso canal de suporte.</p>
+    </header>
+
+    <div class="container">
+        
+        <!-- MENU PRINCIPAL -->
+        <div id="menu-principal" class="menu-grid">
+            <div class="menu-card" onclick="mostrarTela('tela-cadastro')">
+                <h3>📝 Solicitar Cadastro (Acessos)</h3>
+                <p>Para novos colaboradores. Requer envio de documentos e dados funcionais.</p>
+            </div>
+            
+            <div class="menu-card" onclick="mostrarTela('tela-treinamento')">
+                <h3>🎓 Solicitar Treinamento</h3>
+                <p>Agende um treinamento sobre nossos sistemas para você ou seu setor.</p>
+            </div>
+
+            <!-- Coloque o LINK DO SEU GRUPO/WHATSAPP no href abaixo -->
+            <a href="https://chat.whatsapp.com/SEU_LINK_AQUI" target="_blank" style="text-decoration: none;">
+                <div class="menu-card whatsapp">
+                    <h3>💬 Abrir Chamado (Suporte)</h3>
+                    <p>Fale diretamente com nossa equipe no grupo de suporte rápido.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- TELA 1: FORMULÁRIO DE CADASTRO -->
+        <div id="tela-cadastro" class="form-section">
+            <div class="form-header">
+                <h2>Formulário de Cadastro</h2>
+                <button class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
+            </div>
+
+            <form id="form-cad" onsubmit="enviarCadastro(event)">
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Nome Completo *</label>
+                        <input type="text" id="cad_nome" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>E-mail *</label>
+                        <input type="email" id="cad_email" required>
+                    </div>
+                    <div class="col form-group">
+                        <label>Telefone (WhatsApp) *</label>
+                        <input type="text" id="cad_telefone" maxlength="15" oninput="mascaraTelefone(this)" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Sexo *</label>
+                        <select id="cad_sexo" required>
+                            <option value="">Selecione...</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label>Data de Nascimento *</label>
+                        <input type="date" id="cad_nascimento" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>CPF *</label>
+                        <input type="text" id="cad_cpf" maxlength="14" oninput="mascaraCPF(this)" required>
+                    </div>
+                    <div class="col form-group">
+                        <label>CNS (Cartão SUS)</label>
+                        <input type="text" id="cad_cns" placeholder="Opcional">
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Cargo *</label>
+                        <input type="text" id="cad_cargo" placeholder="Ex: Enfermeiro, Médico, Recepcionista..." required>
+                    </div>
+                    <div class="col form-group">
+                        <label>Especialidade</label>
+                        <input type="text" id="cad_especialidade" placeholder="Se aplicável">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Vínculo Empregatício *</label>
+                        <select id="cad_vinculo" required>
+                            <option value="">Selecione...</option>
+                            <option value="CLT">CLT</option>
+                            <option value="PJ">PJ / Terceirizado</option>
+                            <option value="Estatutário">Estatutário</option>
+                            <option value="Estagiário">Estagiário / Residente</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label>Matrícula</label>
+                        <input type="text" id="cad_matricula" placeholder="Se possuir">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Setor e Andar *</label>
+                    <input type="text" id="cad_setor" placeholder="Ex: CTI Adulto - 3º Andar" required>
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+                <div class="form-group">
+                    <label>Sua profissão exige registro em Conselho? (Ex: CRM, COREN) *</label>
+                    <select id="cad_tem_conselho" required onchange="toggleConselho()">
+                        <option value="sim">Sim, possuo conselho ativo</option>
+                        <option value="nao">Não exige / Sou isento</option>
+                    </select>
+                </div>
+
+                <div id="bloco_conselho" class="row">
+                    <div class="col form-group">
+                        <label>Número do Conselho (Com UF) *</label>
+                        <input type="text" id="cad_num_conselho" placeholder="Ex: CRM-RJ 123456" required>
+                    </div>
+                    <div class="col form-group">
+                        <label>Foto do Conselho (Frente e Verso) *</label>
+                        <input type="file" id="cad_foto_conselho" accept="image/*" required style="background: white;">
+                    </div>
+                </div>
+
+                <div class="form-group mt-15">
+                    <label>Foto de um Documento com Foto (RG, CNH) *</label>
+                    <input type="file" id="cad_foto_doc" accept="image/*" required style="background: white;">
+                    <small style="color: #64748b;">Nossa plataforma otimiza a foto automaticamente para não gastar sua internet.</small>
+                </div>
+
+                <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação</button>
+            </form>
+        </div>
+
+        <!-- TELA 2: FORMULÁRIO DE TREINAMENTO -->
+        <div id="tela-treinamento" class="form-section">
+            <div class="form-header">
+                <h2>Solicitar Treinamento</h2>
+                <button class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
+            </div>
+
+            <form id="form-tr" onsubmit="enviarTreinamento(event)">
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Nome do Solicitante *</label>
+                        <input type="text" id="tr_nome" required>
+                    </div>
+                    <div class="col form-group">
+                        <label>E-mail *</label>
+                        <input type="email" id="tr_email" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Telefone (WhatsApp) *</label>
+                        <input type="text" id="tr_telefone" maxlength="15" oninput="mascaraTelefone(this)" required>
+                    </div>
+                    <div class="col form-group">
+                        <label>Cargo *</label>
+                        <input type="text" id="tr_cargo" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Setor e Andar *</label>
+                    <input type="text" id="tr_setor" placeholder="Ex: Recepção Principal - Térreo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tema do Treinamento Necessário *</label>
+                    <input type="text" id="tr_tema" placeholder="Ex: Como utilizar o painel de senhas, Acesso ao PEP..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Data Desejada (Sujeito à disponibilidade da T.I)</label>
+                    <input type="date" id="tr_data">
+                </div>
+
+                <button type="submit" id="btn-submit-tr" class="submit-btn">Enviar Pedido de Treinamento</button>
+            </form>
+        </div>
+
+        <div id="loader">⏳ Processando e enviando dados, por favor aguarde...</div>
+
+    </div>
+
+    <!-- Nosso arquivo JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
