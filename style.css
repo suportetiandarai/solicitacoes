@@ -1,0 +1,117 @@
+:root {
+    --primary: #3498db;
+    --primary-hover: #2980b9;
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-light: #64748b;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Inter', sans-serif; 
+}
+
+body { 
+    background-color: var(--bg); 
+    color: var(--text); 
+    padding-bottom: 50px; 
+}
+
+header {
+    background-color: var(--primary);
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+header h1 { font-size: 24px; margin-bottom: 5px; }
+header p { font-size: 14px; opacity: 0.9; }
+
+.container { 
+    max-width: 800px; 
+    margin: -20px auto 0; 
+    padding: 0 15px; 
+    position: relative; 
+    z-index: 10; 
+}
+
+/* Menu Principal (Botões Grandes) */
+.menu-grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+
+.menu-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+}
+.menu-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+    border-color: var(--primary); 
+}
+.menu-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--primary); }
+.menu-card p { font-size: 13px; color: var(--text-light); }
+
+/* Botão do WhatsApp (Chamados) */
+.menu-card.whatsapp { border-color: #25D366; }
+.menu-card.whatsapp h3 { color: #25D366; }
+
+/* Formulários (Ocultos por padrão) */
+.form-section {
+    background: var(--card);
+    padding: 25px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: none; 
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.form-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid #e2e8f0; 
+    padding-bottom: 15px; 
+}
+.form-header h2 { font-size: 20px; color: var(--primary); }
+.btn-voltar { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; font-weight: 600; }
+.btn-voltar:hover { color: var(--danger); }
+
+.form-group { margin-bottom: 15px; }
+.mt-15 { margin-top: 15px; }
+
+label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+input, select {
+    width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+    font-size: 14px; outline: none; transition: border-color 0.2s; background: #f8fafc;
+}
+input:focus, select:focus { border-color: var(--primary); background: #fff; }
+
+.row { display: flex; gap: 15px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 200px; }
+
+button.submit-btn {
+    width: 100%; padding: 15px; background: var(--success); color: white; border: none;
+    border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s;
+}
+button.submit-btn:hover { background: #27ae60; }
+button.submit-btn:disabled { background: #95a5a6; cursor: not-allowed; }
+
+/* Loader de envio */
+#loader { display: none; text-align: center; margin-top: 15px; font-size: 14px; color: var(--primary); font-weight: bold; }
