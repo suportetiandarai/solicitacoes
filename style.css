@@ -233,3 +233,14 @@ button.submit-btn:disabled {
     .row { gap: 0; }
     .col { min-width: 100%; }
 }
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 16px;
+    border-left: 5px solid #ffc107;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-size: 14px;
+    line-height: 1.5;
+}
