@@ -13,7 +13,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 // 🟢 SOLUÇÃO: Usar window. garante que o HTML enxergue a função
 window.mostrarTela = function(idTela) {
-    const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento'];
+    // 🟢 ADICIONADO: 'tela-login-ad' na lista de telas para ela sumir quando precisar
+    const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento', 'tela-login-ad'];
     telas.forEach(t => {
         const el = document.getElementById(t);
         if (el) el.style.display = 'none';
@@ -178,6 +179,31 @@ window.enviarCadastro = async function(event) {
 
     } catch (err) {
         alert("Erro crítico: " + err.message);
+    } finally {
+        loading(false);
+    }
+};
+
+// 🟢 ADICIONADO: Nova função para envio de Solicitação de Login (AD)
+window.enviarLoginAD = async function(event) {
+    event.preventDefault();
+    loading(true);
+
+    const dados = {
+        nome_completo: document.getElementById('ad_nome').value,
+        cpf: document.getElementById('ad_cpf').value,
+        status: 'Pendente'
+    };
+
+    try {
+        const { error } = await supabaseClient.from('solicitacoes_ad').insert([dados]);
+        if (error) throw error;
+
+        alert("Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.");
+        document.getElementById('form-ad').reset();
+        window.mostrarTela('menu-principal');
+    } catch (err) {
+        alert("Erro ao enviar solicitação: " + err.message);
     } finally {
         loading(false);
     }
