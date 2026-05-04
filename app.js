@@ -1,25 +1,18 @@
+// ==========================================
+// 1. CONFIGURAÇÃO DO SUPABASE (CORRIGIDA)
+// ==========================================
 const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 🟢 SOLUÇÃO: Mudamos o nome para supabaseClient para NÃO dar conflito com o CDN
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================
-// 1. CONFIGURAÇÃO DO SUPABASE (PROTEGIDA)
+// 2. CONTROLE DA TELA E MÁSCARAS
 // ==========================================
 
-// Se a variável já existir (vinda de outro script), não declaramos de novo
-if (typeof supabase === 'undefined') {
-    const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
-    // Usamos var ou window para garantir que o resto do código enxergue
-    window.supabase = window.supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
-
-// ==========================================
-// 2. CONTROLE DA TELA (FORÇADO NO GLOBAL)
-// ==========================================
+// 🟢 SOLUÇÃO: Usar window. garante que o HTML enxergue a função
 window.mostrarTela = function(idTela) {
-    console.log("Chamando tela:", idTela);
-    
     const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento'];
     telas.forEach(t => {
         const el = document.getElementById(t);
@@ -28,15 +21,12 @@ window.mostrarTela = function(idTela) {
     
     const alvo = document.getElementById(idTela);
     if (alvo) {
-        // Se for o menu usa flex, se for form usa block
         alvo.style.display = (idTela === 'menu-principal') ? 'flex' : 'block';
         window.scrollTo(0,0);
-    } else {
-        console.error("Alvo não encontrado:", idTela);
     }
 };
 
-function toggleConselho() {
+window.toggleConselho = function() {
     const select = document.getElementById('cad_tem_conselho').value;
     const bloco = document.getElementById('bloco_conselho');
     const num = document.getElementById('cad_num_conselho');
@@ -53,28 +43,28 @@ function toggleConselho() {
         num.value = 'ISENTO'; 
         foto.value = ''; 
     }
-}
+};
 
-function mascaraCPF(cpf) {
+window.mascaraCPF = function(cpf) {
     let v = cpf.value.replace(/\D/g, ""); 
     if (v.length > 11) v = v.slice(0, 11); 
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
     v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     cpf.value = v;
-}
+};
 
-function mascaraTelefone(tel) {
+window.mascaraTelefone = function(tel) {
     let v = tel.value.replace(/\D/g, ""); 
     if (v.length > 11) v = v.slice(0, 11); 
     v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
     v = v.replace(/(\d)(\d{4})$/, "$1-$2");
     tel.value = v;
-}
+};
 
 function loading(estado) {
     const loader = document.getElementById('loader');
-    if (loader) loader.style.display = estado ? 'block' : 'none';
+    if (loader) loader.style.display = estado ? 'flex' : 'none';
     const botoes = document.querySelectorAll('.submit-btn');
     botoes.forEach(b => b.disabled = estado);
 }
@@ -87,7 +77,7 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
 
     const arquivoOriginal = fileInput.files[0];
     const options = {
-        maxSizeMB: 0.2, // Máximo 200KB
+        maxSizeMB: 0.2, 
         maxWidthOrHeight: 1920,
         useWebWorker: true
     };
@@ -96,15 +86,15 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
         console.log(`Comprimindo ${prefixoNome}...`);
         const arquivoComprimido = await imageCompression(arquivoOriginal, options);
         
-        // Limpa o nome do arquivo de espaços e acentos
         const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
         const nomeArquivo = `${prefixoNome}_${Date.now()}_${nomeLimpo}`;
 
         console.log(`Enviando ${prefixoNome} ao Supabase...`);
-        const { data, error } = await supabase.storage.from('documentos_externos').upload(nomeArquivo, arquivoComprimido);
+        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
+        const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoComprimido);
         
         if (error) throw error;
-        return supabase.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl;
+        return supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl;
 
     } catch (error) {
         console.error(`Erro no upload de ${prefixoNome}:`, error);
@@ -115,7 +105,7 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
 // ==========================================
 // 4. ENVIO DOS FORMULÁRIOS
 // ==========================================
-async function enviarTreinamento(event) {
+window.enviarTreinamento = async function(event) {
     event.preventDefault();
     loading(true);
 
@@ -131,25 +121,25 @@ async function enviarTreinamento(event) {
     };
 
     try {
-        const { error } = await supabase.from('solicitacoes_treinamento').insert([dados]);
+        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
+        const { error } = await supabaseClient.from('solicitacoes_treinamento').insert([dados]);
         if (error) throw error;
 
         alert("Solicitação de treinamento enviada com sucesso!");
         document.getElementById('form-tr').reset();
-        mostrarTela('menu-principal');
+        window.mostrarTela('menu-principal');
     } catch (err) {
         alert("Erro ao enviar treinamento: " + err.message);
     } finally {
         loading(false);
     }
-}
+};
 
-async function enviarCadastro(event) {
+window.enviarCadastro = async function(event) {
     event.preventDefault();
     loading(true);
 
     try {
-        // 1. Uploads em paralelo para ganhar tempo
         const uploadDoc = comprimirEEnviarFoto(document.getElementById('cad_foto_doc'), 'doc');
         
         let uploadConselho = Promise.resolve(null);
@@ -159,7 +149,6 @@ async function enviarCadastro(event) {
 
         const [urlDoc, urlConselho] = await Promise.all([uploadDoc, uploadConselho]);
 
-        // 2. Monta o pacote
         const dados = {
             nome: document.getElementById('cad_nome').value,
             email: document.getElementById('cad_email').value,
@@ -179,16 +168,17 @@ async function enviarCadastro(event) {
             status: 'Pendente'
         };
 
-        const { error } = await supabase.from('solicitacoes_cadastro').insert([dados]);
+        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
+        const { error } = await supabaseClient.from('solicitacoes_cadastro').insert([dados]);
         if (error) throw error;
 
         alert("Cadastro enviado com sucesso! A T.I analisará seus documentos.");
         document.getElementById('form-cad').reset();
-        mostrarTela('menu-principal');
+        window.mostrarTela('menu-principal');
 
     } catch (err) {
         alert("Erro crítico: " + err.message);
     } finally {
         loading(false);
     }
-}
+};
