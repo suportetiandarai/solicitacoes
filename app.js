@@ -6,9 +6,23 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================
-// 2. CONTROLE DA TELA E MÁSCARAS
+// 1. CONFIGURAÇÃO DO SUPABASE (PROTEGIDA)
 // ==========================================
-function mostrarTela(idTela) {
+
+// Se a variável já existir (vinda de outro script), não declaramos de novo
+if (typeof supabase === 'undefined') {
+    const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
+    // Usamos var ou window para garantir que o resto do código enxergue
+    window.supabase = window.supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// ==========================================
+// 2. CONTROLE DA TELA (FORÇADO NO GLOBAL)
+// ==========================================
+window.mostrarTela = function(idTela) {
+    console.log("Chamando tela:", idTela);
+    
     const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento'];
     telas.forEach(t => {
         const el = document.getElementById(t);
@@ -17,10 +31,13 @@ function mostrarTela(idTela) {
     
     const alvo = document.getElementById(idTela);
     if (alvo) {
+        // Se for o menu usa flex, se for form usa block
         alvo.style.display = (idTela === 'menu-principal') ? 'flex' : 'block';
         window.scrollTo(0,0);
+    } else {
+        console.error("Alvo não encontrado:", idTela);
     }
-}
+};
 
 function toggleConselho() {
     const select = document.getElementById('cad_tem_conselho').value;
