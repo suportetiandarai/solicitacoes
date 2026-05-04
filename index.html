@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Serviços T.I</title>
+    <title>Portal de Serviços T.I - Andaraí</title>
     
     <!-- Fontes e Bibliotecas Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
                 <p>Agende um treinamento sobre nossos sistemas para você ou seu setor.</p>
             </div>
 
-            <!-- Coloque o LINK DO SEU GRUPO/WHATSAPP no href abaixo -->
+            <!-- LINK WHATSAPP -->
             <a href="https://chat.whatsapp.com/SEU_LINK_AQUI" target="_blank" style="text-decoration: none;">
                 <div class="menu-card whatsapp">
                     <h3>💬 Abrir Chamado (Suporte)</h3>
@@ -47,31 +47,32 @@
         <div id="tela-cadastro" class="form-section">
             <div class="form-header">
                 <h2>Formulário de Cadastro</h2>
-                <button class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
+                <!-- Importante: type="button" para não submeter o form ao voltar -->
+                <button type="button" class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
             </div>
 
             <form id="form-cad" onsubmit="enviarCadastro(event)">
                 <div class="row">
                     <div class="col form-group">
-                        <label>Nome Completo *</label>
-                        <input type="text" id="cad_nome" required>
+                        <label for="cad_nome">Nome Completo *</label>
+                        <input type="text" id="cad_nome" placeholder="Nome como no documento" required>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col form-group">
-                        <label>E-mail *</label>
-                        <input type="email" id="cad_email" required>
+                        <label for="cad_email">E-mail Corporativo ou Pessoal *</label>
+                        <input type="email" id="cad_email" placeholder="email@exemplo.com" required>
                     </div>
                     <div class="col form-group">
-                        <label>Telefone (WhatsApp) *</label>
-                        <input type="text" id="cad_telefone" maxlength="15" oninput="mascaraTelefone(this)" required>
+                        <label for="cad_telefone">Telefone (WhatsApp) *</label>
+                        <input type="text" id="cad_telefone" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(21) 99999-9999" required>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col form-group">
-                        <label>Sexo *</label>
+                        <label for="cad_sexo">Sexo *</label>
                         <select id="cad_sexo" required>
                             <option value="">Selecione...</option>
                             <option value="Feminino">Feminino</option>
@@ -80,38 +81,38 @@
                         </select>
                     </div>
                     <div class="col form-group">
-                        <label>Data de Nascimento *</label>
+                        <label for="cad_nascimento">Data de Nascimento *</label>
                         <input type="date" id="cad_nascimento" required>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col form-group">
-                        <label>CPF *</label>
-                        <input type="text" id="cad_cpf" maxlength="14" oninput="mascaraCPF(this)" required>
+                        <label for="cad_cpf">CPF *</label>
+                        <input type="text" id="cad_cpf" maxlength="14" oninput="mascaraCPF(this)" placeholder="000.000.000-00" required>
                     </div>
                     <div class="col form-group">
-                        <label>CNS (Cartão SUS)</label>
-                        <input type="text" id="cad_cns" placeholder="Opcional">
-                    </div>
-                </div>
-
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Cargo *</label>
-                        <input type="text" id="cad_cargo" placeholder="Ex: Enfermeiro, Médico, Recepcionista..." required>
-                    </div>
-                    <div class="col form-group">
-                        <label>Especialidade</label>
-                        <input type="text" id="cad_especialidade" placeholder="Se aplicável">
+                        <label for="cad_cns">CNS (Cartão SUS)</label>
+                        <input type="text" id="cad_cns" placeholder="Número do CNS">
                     </div>
                 </div>
 
+                <hr class="divider">
+
                 <div class="row">
                     <div class="col form-group">
-                        <label>Vínculo Empregatício *</label>
+                        <label for="cad_cargo">Cargo *</label>
+                        <input type="text" id="cad_cargo" placeholder="Ex: Médico, Enfermeiro..." required>
+                    </div>
+                    <div class="col form-group">
+                        <label for="cad_especialidade">Especialidade</label>
+                        <input type="text" id="cad_especialidade" placeholder="Se possuir">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label for="cad_vinculo">Vínculo Empregatício *</label>
                         <select id="cad_vinculo" required>
                             <option value="">Selecione...</option>
                             <option value="CLT">CLT</option>
@@ -121,44 +122,45 @@
                         </select>
                     </div>
                     <div class="col form-group">
-                        <label>Matrícula</label>
+                        <label for="cad_matricula">Matrícula</label>
                         <input type="text" id="cad_matricula" placeholder="Se possuir">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Setor e Andar *</label>
+                    <label for="cad_setor">Setor e Andar *</label>
                     <input type="text" id="cad_setor" placeholder="Ex: CTI Adulto - 3º Andar" required>
                 </div>
 
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                <hr class="divider">
 
                 <div class="form-group">
-                    <label>Sua profissão exige registro em Conselho? (Ex: CRM, COREN) *</label>
+                    <label for="cad_tem_conselho">Sua profissão exige registro em Conselho? *</label>
                     <select id="cad_tem_conselho" required onchange="toggleConselho()">
-                        <option value="sim">Sim, possuo conselho ativo</option>
+                        <option value="sim">Sim, possuo conselho ativo (CRM, COREN, etc)</option>
                         <option value="nao">Não exige / Sou isento</option>
                     </select>
                 </div>
 
-                <div id="bloco_conselho" class="row">
+                <!-- Bloco escondido por padrão via style inline para garantir -->
+                <div id="bloco_conselho" class="row" style="display: flex;">
                     <div class="col form-group">
-                        <label>Número do Conselho (Com UF) *</label>
+                        <label for="cad_num_conselho">Número do Conselho (Com UF) *</label>
                         <input type="text" id="cad_num_conselho" placeholder="Ex: CRM-RJ 123456" required>
                     </div>
                     <div class="col form-group">
-                        <label>Foto do Conselho (Frente e Verso) *</label>
-                        <input type="file" id="cad_foto_conselho" accept="image/*" required style="background: white;">
+                        <label for="cad_foto_conselho">Foto do Conselho (Frente e Verso) *</label>
+                        <input type="file" id="cad_foto_conselho" accept="image/*" required>
                     </div>
                 </div>
 
                 <div class="form-group mt-15">
-                    <label>Foto de um Documento com Foto (RG, CNH) *</label>
-                    <input type="file" id="cad_foto_doc" accept="image/*" required style="background: white;">
-                    <small style="color: #64748b;">Nossa plataforma otimiza a foto automaticamente para não gastar sua internet.</small>
+                    <label for="cad_foto_doc">Foto de um Documento com Foto (RG ou CNH) *</label>
+                    <input type="file" id="cad_foto_doc" accept="image/*" required>
+                    <small class="help-text">Nossa plataforma otimiza a foto automaticamente.</small>
                 </div>
 
-                <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação</button>
+                <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação de Cadastro</button>
             </form>
         </div>
 
@@ -166,44 +168,44 @@
         <div id="tela-treinamento" class="form-section">
             <div class="form-header">
                 <h2>Solicitar Treinamento</h2>
-                <button class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
+                <button type="button" class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
             </div>
 
             <form id="form-tr" onsubmit="enviarTreinamento(event)">
                 <div class="row">
                     <div class="col form-group">
-                        <label>Nome do Solicitante *</label>
-                        <input type="text" id="tr_nome" required>
+                        <label for="tr_nome">Nome do Solicitante *</label>
+                        <input type="text" id="tr_nome" placeholder="Seu nome completo" required>
                     </div>
                     <div class="col form-group">
-                        <label>E-mail *</label>
-                        <input type="email" id="tr_email" required>
+                        <label for="tr_email">E-mail de Contato *</label>
+                        <input type="email" id="tr_email" placeholder="Para receber a confirmação" required>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col form-group">
-                        <label>Telefone (WhatsApp) *</label>
-                        <input type="text" id="tr_telefone" maxlength="15" oninput="mascaraTelefone(this)" required>
+                        <label for="tr_telefone">Telefone (WhatsApp) *</label>
+                        <input type="text" id="tr_telefone" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(21) 99999-9999" required>
                     </div>
                     <div class="col form-group">
-                        <label>Cargo *</label>
-                        <input type="text" id="tr_cargo" required>
+                        <label for="tr_cargo">Cargo / Função *</label>
+                        <input type="text" id="tr_cargo" placeholder="Ex: Técnico de Enfermagem" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Setor e Andar *</label>
+                    <label for="tr_setor">Setor e Andar *</label>
                     <input type="text" id="tr_setor" placeholder="Ex: Recepção Principal - Térreo" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Tema do Treinamento Necessário *</label>
-                    <input type="text" id="tr_tema" placeholder="Ex: Como utilizar o painel de senhas, Acesso ao PEP..." required>
+                    <label for="tr_tema">Tema do Treinamento Necessário *</label>
+                    <input type="text" id="tr_tema" placeholder="Ex: Uso do PEP, Configuração de Impressora..." required>
                 </div>
 
                 <div class="form-group">
-                    <label>Data Desejada (Sujeito à disponibilidade da T.I)</label>
+                    <label for="tr_data">Data Desejada (Sujeito à agenda da T.I)</label>
                     <input type="date" id="tr_data">
                 </div>
 
@@ -211,7 +213,11 @@
             </form>
         </div>
 
-        <div id="loader">⏳ Processando e enviando dados, por favor aguarde...</div>
+        <!-- Loader -->
+        <div id="loader">
+            <div class="spinner"></div>
+            <p>Processando e enviando dados, aguarde...</p>
+        </div>
 
     </div>
 
