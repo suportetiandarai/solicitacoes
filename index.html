@@ -183,18 +183,31 @@
             </div>
 
             <form id="form-ad" onsubmit="enviarLoginAD(event)">
-                <div class="form-group mt-15">
-                    <label for="ad_nome">Nome Completo *</label>
-                    <input type="text" id="ad_nome" placeholder="Seu nome completo" required>
+                <div class="row mt-15">
+                    <div class="col form-group">
+                        <label for="ad_nome">Nome Completo *</label>
+                        <input type="text" id="ad_nome" placeholder="Seu nome completo" required>
+                    </div>
+                    <div class="col form-group">
+                        <label for="ad_cpf">CPF *</label>
+                        <input type="text" id="ad_cpf" maxlength="14" oninput="mascaraCPF(this)" placeholder="000.000.000-00" required>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="ad_cpf">CPF *</label>
-                    <input type="text" id="ad_cpf" maxlength="14" oninput="mascaraCPF(this)" placeholder="000.000.000-00" required>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label for="ad_email">E-mail de Contato *</label>
+                        <input type="email" id="ad_email" placeholder="Para receber o usuário e senha" required>
+                    </div>
+                    <div class="col form-group">
+                        <label for="ad_telefone">Telefone (WhatsApp) *</label>
+                        <input type="text" id="ad_telefone" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(21) 99999-9999" required>
+                    </div>
                 </div>
 
                 <button type="submit" id="btn-submit-ad" class="submit-btn">Enviar Solicitação de Login</button>
             </form>
+            
         </div>
 
         <!-- TELA 2: FORMULÁRIO DE TREINAMENTO -->
