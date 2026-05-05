@@ -141,14 +141,11 @@ window.enviarCadastro = async function(event) {
     loading(true);
 
     try {
-        const uploadDoc = comprimirEEnviarFoto(document.getElementById('cad_foto_doc'), 'doc');
-        
-        let uploadConselho = Promise.resolve(null);
+        // Agora só processamos a foto do conselho (se a pessoa marcou que tem)
+        let urlConselho = null;
         if (document.getElementById('cad_tem_conselho').value === 'sim') {
-            uploadConselho = comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
+            urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
         }
-
-        const [urlDoc, urlConselho] = await Promise.all([uploadDoc, uploadConselho]);
 
         const dados = {
             nome: document.getElementById('cad_nome').value,
@@ -164,16 +161,15 @@ window.enviarCadastro = async function(event) {
             vinculo_empregaticio: document.getElementById('cad_vinculo').value,
             matricula: document.getElementById('cad_matricula').value || null,
             setor_andar: document.getElementById('cad_setor').value,
-            foto_documento_url: urlDoc,
+            foto_documento_url: null, // Passamos nulo propositalmente para o banco de dados
             foto_conselho_url: urlConselho,
             status: 'Pendente'
         };
 
-        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
         const { error } = await supabaseClient.from('solicitacoes_cadastro').insert([dados]);
         if (error) throw error;
 
-        alert("Cadastro enviado com sucesso! A T.I analisará seus documentos.");
+        alert("Cadastro enviado com sucesso! A T.I analisará sua solicitação.");
         document.getElementById('form-cad').reset();
         window.mostrarTela('menu-principal');
 
