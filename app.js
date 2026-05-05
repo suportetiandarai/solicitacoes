@@ -184,7 +184,7 @@ window.enviarCadastro = async function(event) {
     }
 };
 
-// 🟢 ADICIONADO: Nova função para envio de Solicitação de Login (AD)
+// 🟢 ATUALIZADO: Função com E-mail e Telefone
 window.enviarLoginAD = async function(event) {
     event.preventDefault();
     loading(true);
@@ -192,6 +192,8 @@ window.enviarLoginAD = async function(event) {
     const dados = {
         nome_completo: document.getElementById('ad_nome').value,
         cpf: document.getElementById('ad_cpf').value,
+        email: document.getElementById('ad_email').value,
+        telefone: document.getElementById('ad_telefone').value,
         status: 'Pendente'
     };
 
