@@ -74,31 +74,42 @@ function loading(estado) {
 // 3. INTELIGÊNCIA: COMPRESSÃO E UPLOAD
 // ==========================================
 async function comprimirEEnviarFoto(fileInput, prefixoNome) {
-    // 🟢 CORREÇÃO: Se o campo não existir no HTML, retorna null e não trava o código
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
 
     const arquivoOriginal = fileInput.files[0];
-    const options = {
-        maxSizeMB: 0.2, 
-        maxWidthOrHeight: 1920,
-        useWebWorker: true
-    };
+    const ePDF = arquivoOriginal.type === 'application/pdf';
 
     try {
-        console.log(`Comprimindo ${prefixoNome}...`);
-        const arquivoComprimido = await imageCompression(arquivoOriginal, options);
+        let arquivoParaUpload;
+
+        if (ePDF) {
+            // Se for PDF, não tentamos comprimir (daria erro)
+            console.log(`Arquivo PDF detectado (${prefixoNome}). Enviando direto...`);
+            arquivoParaUpload = arquivoOriginal;
+        } else {
+            // Se for imagem (JPG/PNG/etc), aplicamos a compressão de 0.2MB
+            console.log(`Imagem detectada (${prefixoNome}). Comprimindo...`);
+            const options = {
+                maxSizeMB: 0.2,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
+            };
+            arquivoParaUpload = await imageCompression(arquivoOriginal, options);
+        }
         
+        // Limpa o nome do arquivo (remove acentos e espaços)
         const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
         const nomeArquivo = `${prefixoNome}_${Date.now()}_${nomeLimpo}`;
 
-        const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoComprimido);
+        console.log(`Fazendo upload de ${prefixoNome} para o Supabase...`);
+        const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoParaUpload);
         
         if (error) throw error;
         return supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl;
 
     } catch (error) {
-        console.error(`Erro no upload de ${prefixoNome}:`, error);
-        throw new Error(`Falha ao processar foto (${prefixoNome}). Tente novamente.`);
+        console.error(`Erro no processamento de ${prefixoNome}:`, error);
+        throw new Error(`Não foi possível processar o arquivo (${prefixoNome}). Verifique o formato e tente novamente.`);
     }
 }
 // ==========================================
