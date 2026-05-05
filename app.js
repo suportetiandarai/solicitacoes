@@ -74,7 +74,8 @@ function loading(estado) {
 // 3. INTELIGÊNCIA: COMPRESSÃO E UPLOAD
 // ==========================================
 async function comprimirEEnviarFoto(fileInput, prefixoNome) {
-    if (!fileInput.files || fileInput.files.length === 0) return null;
+    // 🟢 CORREÇÃO: Se o campo não existir no HTML, retorna null e não trava o código
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
 
     const arquivoOriginal = fileInput.files[0];
     const options = {
@@ -90,8 +91,6 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
         const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
         const nomeArquivo = `${prefixoNome}_${Date.now()}_${nomeLimpo}`;
 
-        console.log(`Enviando ${prefixoNome} ao Supabase...`);
-        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
         const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoComprimido);
         
         if (error) throw error;
@@ -102,7 +101,6 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
         throw new Error(`Falha ao processar foto (${prefixoNome}). Tente novamente.`);
     }
 }
-
 // ==========================================
 // 4. ENVIO DOS FORMULÁRIOS
 // ==========================================
@@ -141,7 +139,7 @@ window.enviarCadastro = async function(event) {
     loading(true);
 
     try {
-        // Agora só processamos a foto do conselho (se a pessoa marcou que tem)
+        // 🟢 CORREÇÃO: Agora processamos APENAS o conselho se ele existir
         let urlConselho = null;
         if (document.getElementById('cad_tem_conselho').value === 'sim') {
             urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
@@ -161,7 +159,7 @@ window.enviarCadastro = async function(event) {
             vinculo_empregaticio: document.getElementById('cad_vinculo').value,
             matricula: document.getElementById('cad_matricula').value || null,
             setor_andar: document.getElementById('cad_setor').value,
-            foto_documento_url: null, // Passamos nulo propositalmente para o banco de dados
+            foto_documento_url: null, // Campo de documento desativado
             foto_conselho_url: urlConselho,
             status: 'Pendente'
         };
@@ -169,12 +167,12 @@ window.enviarCadastro = async function(event) {
         const { error } = await supabaseClient.from('solicitacoes_cadastro').insert([dados]);
         if (error) throw error;
 
-        alert("Cadastro enviado com sucesso! A T.I analisará sua solicitação.");
+        alert("Cadastro enviado com sucesso!");
         document.getElementById('form-cad').reset();
         window.mostrarTela('menu-principal');
 
     } catch (err) {
-        alert("Erro crítico: " + err.message);
+        alert("Erro ao enviar: " + err.message);
     } finally {
         loading(false);
     }
