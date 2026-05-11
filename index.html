@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Serviços T.I - Andaraí</title>
     
-    <!-- Fontes e Bibliotecas Externas -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
 
-    <!-- Nosso arquivo CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,14 +20,12 @@
 
     <div class="container">
         
-        <!-- MENU PRINCIPAL -->
         <div id="menu-principal" class="menu-grid">
             <div class="menu-card" onclick="mostrarTela('tela-cadastro')">
-                <h3>📝 Solicitar Cadastro TIMED </h3>
+                <h3>📝 Solicitar Cadastro TIMED</h3>
                 <p>Para novos colaboradores. Requer envio de dados funcionais.</p>
             </div>
 
-           
             <div class="menu-card" onclick="mostrarTela('tela-login-ad')">
                 <h3>💻 Solicitar Login de Computador</h3>
                 <p>Solicite seu usuário e senha para acessar os computadores da rede.</p>
@@ -40,7 +36,6 @@
                 <p>Agende um treinamento sobre TIMED para você ou seu setor.</p>
             </div>
 
-            <!-- LINK WHATSAPP -->
             <a href="https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R" target="_blank" style="text-decoration: none;">
                 <div class="menu-card whatsapp">
                     <h3>💬 Abrir Chamado (Suporte)</h3>
@@ -49,11 +44,9 @@
             </a>
         </div>
 
-        <!-- TELA 1: FORMULÁRIO DE CADASTRO -->
         <div id="tela-cadastro" class="form-section">
             <div class="form-header">
                 <h2>Formulário de Cadastro TIMED</h2>
-                <!-- Importante: type="button" para não submeter o form ao voltar -->
                 <button type="button" class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
             </div>
 
@@ -106,12 +99,10 @@
                 <hr class="divider">
 
                 <div class="row">
-                   <div class="col form-group">
+                    <div class="col form-group">
                         <label for="cad_cargo">Cargo *</label>
-                        <!-- O segredo está aqui: o list="lista-cargos" conecta este campo de texto à lista abaixo -->
                         <input type="text" id="cad_cargo" list="lista-cargos" placeholder="Digite para pesquisar seu cargo..." autocomplete="off" required>
                         
-                        <!-- Esta é a lista que vai filtrar automaticamente conforme ele digita -->
                         <datalist id="lista-cargos">
                             <option value="DIRETOR ADMINISTRATIVO"></option>
                             <option value="DIRETOR DE SERVICOS DE SAUDE"></option>
@@ -243,7 +234,7 @@
                             <option value="VIVA RIO">VIVA RIO</option>
                             <option value="GNOSIS">GNOSIS</option>
                             <option value="FAS">FAS</option>
-                            <option value="TERCEIRIZADO">TERCEIRIZADO ( EXCLUSIVAMENTE PARA SOLICITAÇÃO DE PRODUTO)</option>
+                            <option value="TERCEIRIZADO">TERCEIRIZADO (SÓ PRODUTOS)</option>
                             <option value="ESTAGIÁRIO">ESTAGIÁRIO/RESIDENTE</option>
                         </select>
                     </div>
@@ -253,9 +244,29 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Prédio *</label>
+                        <select id="cad_predio" onchange="atualizarAndaresEx('cad_predio', 'cad_andar')" required>
+                            <option value="">Selecione...</option>
+                            <option value="UPI">UPI</option>
+                            <option value="UPE">UPE</option>
+                            <option value="PIMAG">PIMAG</option>
+                            <option value="RADIOTERAPIA">RADIOTERAPIA</option>
+                            <option value="TRAUMA">TRAUMA</option>
+                            <option value="CASA ROSA">CASA ROSA</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label>Andar *</label>
+                        <select id="cad_andar" required>
+                            <option value="">Selecione o prédio primeiro...</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="cad_setor">Setor e Andar *</label>
-                    <input type="text" id="cad_setor" placeholder="Ex: CTI Adulto - 3º Andar" required>
+                    <label>Setor Exato *</label>
+                    <input type="text" id="cad_setor" placeholder="Ex: CTI Adulto, Faturamento..." required>
                 </div>
 
                 <hr class="divider">
@@ -268,7 +279,6 @@
                     </select>
                 </div>
 
-                <!-- Bloco escondido por padrão via style inline para garantir -->
                 <div id="bloco_conselho" class="row" style="display: flex;">
                     <div class="col form-group">
                         <label for="cad_num_conselho">Número do Conselho (Com UF) *</label>
@@ -284,16 +294,14 @@
             </form>
         </div>
 
-        <!-- TELA 3: FORMULÁRIO DE LOGIN AD -->
         <div id="tela-login-ad" class="form-section">
             <div class="form-header">
-                <h2>Solicitar Login de Computador (AD)</h2>
+                <h2>Solicitar Login (AD)</h2>
                 <button type="button" class="btn-voltar" onclick="mostrarTela('menu-principal')">← Voltar</button>
             </div>
 
-            <!-- Aviso Importante em Destaque -->
             <div class="alert-warning">
-                <strong>⚠️ Atenção:</strong> Para os andares 2 / 3 / 10 UPI e UPE 3 Andar Ambulatório, a senha e usuário são padrão. Por favor, solicite diretamente à chefia do setor.
+                <strong>⚠️ Atenção:</strong> Para os andares 2 / 3 / 10 UPI e UPE 3 Andar Ambulatório, a senha e usuário são padrão. Solicite diretamente à chefia do setor.
             </div>
 
             <form id="form-ad" onsubmit="enviarLoginAD(event)">
@@ -321,10 +329,8 @@
 
                 <button type="submit" id="btn-submit-ad" class="submit-btn">Enviar Solicitação de Login</button>
             </form>
-            
         </div>
 
-        <!-- TELA 2: FORMULÁRIO DE TREINAMENTO -->
         <div id="tela-treinamento" class="form-section">
             <div class="form-header">
                 <h2>Solicitar Treinamento</h2>
@@ -354,9 +360,29 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Prédio *</label>
+                        <select id="tr_predio" onchange="atualizarAndaresEx('tr_predio', 'tr_andar')" required>
+                            <option value="">Selecione...</option>
+                            <option value="UPI">UPI</option>
+                            <option value="UPE">UPE</option>
+                            <option value="PIMAG">PIMAG</option>
+                            <option value="RADIOTERAPIA">RADIOTERAPIA</option>
+                            <option value="TRAUMA">TRAUMA</option>
+                            <option value="CASA ROSA">CASA ROSA</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label>Andar *</label>
+                        <select id="tr_andar" required>
+                            <option value="">Selecione o prédio primeiro...</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="tr_setor">Setor e Andar *</label>
-                    <input type="text" id="tr_setor" placeholder="Ex: Recepção Principal - Térreo" required>
+                    <label>Setor Exato *</label>
+                    <input type="text" id="tr_setor" placeholder="Ex: Recepção Principal..." required>
                 </div>
 
                 <div class="form-group">
@@ -366,22 +392,20 @@
 
                 <div class="form-group">
                     <label for="tr_data">Data Desejada (Sujeito à agenda da T.I)</label>
-                    <input type="date" id="tr_data">
+                    <input type="datetime-local" id="tr_data">
                 </div>
 
                 <button type="submit" id="btn-submit-tr" class="submit-btn">Enviar Pedido de Treinamento</button>
             </form>
         </div>
 
-        <!-- Loader -->
         <div id="loader">
             <div class="spinner"></div>
-            <p>Processando e enviando dados, aguarde...</p>
+            <p>Processando e conectando, aguarde...</p>
         </div>
 
     </div>
 
-    <!-- Nosso arquivo JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
