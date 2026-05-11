@@ -1,12 +1,4 @@
 // ==========================================
-// 1. CONFIGURAÇÃO DO SUPABASE 
-// ==========================================
-const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ==========================================
 // 0. SISTEMA DE AVISOS INTERATIVOS (TOASTS)
 // ==========================================
 window.mostrarAviso = function(mensagem, tipo = 'info') {
@@ -32,7 +24,6 @@ window.mostrarAviso = function(mensagem, tipo = 'info') {
     }, 4500);
 };
 
-// O TRUQUE: Intercepta o alert() nativo para não abrir a caixa padrão do HTML
 window.alert = function(mensagem) {
     let tipo = 'info';
     let msgLimpa = mensagem;
@@ -44,6 +35,14 @@ window.alert = function(mensagem) {
     msgLimpa = mensagem.replace(/[✅❌⚠️💡]/g, '').trim();
     mostrarAviso(msgLimpa, tipo);
 };
+
+// ==========================================
+// 1. CONFIGURAÇÃO DO SUPABASE 
+// ==========================================
+const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================
 // 2. CONTROLE DA TELA E MÁSCARAS
@@ -99,7 +98,6 @@ window.mascaraTelefone = function(tel) {
     tel.value = v;
 };
 
-// 🟢 INTELIGÊNCIA DOS ANDARES
 window.atualizarAndaresEx = function(predioId, andarId) {
     const predio = document.getElementById(predioId).value; 
     const selectAndar = document.getElementById(andarId); 
@@ -170,7 +168,6 @@ window.enviarTreinamento = async function(event) {
     event.preventDefault();
     loading(true);
 
-    // 🟢 Junta Prédio, Andar e Setor para enviar padronizado
     const predio = document.getElementById('tr_predio').value;
     const andar = document.getElementById('tr_andar').value;
     const setorInput = document.getElementById('tr_setor').value;
@@ -181,7 +178,7 @@ window.enviarTreinamento = async function(event) {
         email: document.getElementById('tr_email').value,
         telefone: document.getElementById('tr_telefone').value,
         cargo: document.getElementById('tr_cargo').value,
-        setor_andar: localizacaoFormatada, // Envia o dado formatado
+        setor_andar: localizacaoFormatada, 
         tema: document.getElementById('tr_tema').value,
         data_desejada: document.getElementById('tr_data').value || null,
         status: 'Pendente'
@@ -191,11 +188,11 @@ window.enviarTreinamento = async function(event) {
         const { error } = await supabaseClient.from('solicitacoes_treinamento').insert([dados]);
         if (error) throw error;
 
-        alert("Solicitação de treinamento enviada com sucesso!");
+        alert("✅ Solicitação de treinamento enviada com sucesso!");
         document.getElementById('form-tr').reset();
         window.mostrarTela('menu-principal');
     } catch (err) {
-        alert("Erro ao enviar treinamento: " + err.message);
+        alert("❌ Erro ao enviar treinamento: " + err.message);
     } finally {
         loading(false);
     }
@@ -211,7 +208,6 @@ window.enviarCadastro = async function(event) {
             urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
         }
 
-        // 🟢 Junta Prédio, Andar e Setor
         const predio = document.getElementById('cad_predio').value;
         const andar = document.getElementById('cad_andar').value;
         const setorInput = document.getElementById('cad_setor').value;
@@ -230,7 +226,7 @@ window.enviarCadastro = async function(event) {
             especialidade: document.getElementById('cad_especialidade').value || null,
             vinculo_empregaticio: document.getElementById('cad_vinculo').value,
             matricula: document.getElementById('cad_matricula').value || null,
-            setor_andar: localizacaoFormatada, // Envia o dado formatado
+            setor_andar: localizacaoFormatada, 
             foto_documento_url: null, 
             foto_conselho_url: urlConselho,
             status: 'Pendente'
@@ -239,12 +235,12 @@ window.enviarCadastro = async function(event) {
         const { error } = await supabaseClient.from('solicitacoes_cadastro').insert([dados]);
         if (error) throw error;
 
-        alert("Cadastro enviado com sucesso!");
+        alert("✅ Cadastro enviado com sucesso!");
         document.getElementById('form-cad').reset();
         window.mostrarTela('menu-principal');
 
     } catch (err) {
-        alert("Erro ao enviar: " + err.message);
+        alert("❌ Erro ao enviar: " + err.message);
     } finally {
         loading(false);
     }
@@ -266,11 +262,11 @@ window.enviarLoginAD = async function(event) {
         const { error } = await supabaseClient.from('solicitacoes_ad').insert([dados]);
         if (error) throw error;
 
-        alert("Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.");
+        alert("✅ Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.");
         document.getElementById('form-ad').reset();
         window.mostrarTela('menu-principal');
     } catch (err) {
-        alert("Erro ao enviar solicitação: " + err.message);
+        alert("❌ Erro ao enviar solicitação: " + err.message);
     } finally {
         loading(false);
     }
