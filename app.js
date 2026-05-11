@@ -1,19 +1,16 @@
 // ==========================================
-// 1. CONFIGURAÇÃO DO SUPABASE (CORRIGIDA)
+// 1. CONFIGURAÇÃO DO SUPABASE 
 // ==========================================
 const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
 
-// 🟢 SOLUÇÃO: Mudamos o nome para supabaseClient para NÃO dar conflito com o CDN
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================
 // 2. CONTROLE DA TELA E MÁSCARAS
 // ==========================================
 
-// 🟢 SOLUÇÃO: Usar window. garante que o HTML enxergue a função
 window.mostrarTela = function(idTela) {
-    // 🟢 ADICIONADO: 'tela-login-ad' na lista de telas para ela sumir quando precisar
     const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento', 'tela-login-ad'];
     telas.forEach(t => {
         const el = document.getElementById(t);
@@ -63,6 +60,28 @@ window.mascaraTelefone = function(tel) {
     tel.value = v;
 };
 
+// 🟢 INTELIGÊNCIA DOS ANDARES
+window.atualizarAndaresEx = function(predioId, andarId) {
+    const predio = document.getElementById(predioId).value; 
+    const selectAndar = document.getElementById(andarId); 
+    selectAndar.innerHTML = '<option value="">Selecione...</option>';
+    let andares = [];
+    
+    if (predio === 'UPI') andares = ['SL CTI 1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar', '6º Andar', '7º Andar', '8º Andar', '9º Andar', '10º Andar', '11º Andar', '12º Andar', '13º Andar'];
+    else if (predio === 'UPE') andares = ['1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar'];
+    else if (predio === 'PIMAG') andares = ['1º Andar', '2º Andar', '3º Andar', '4º Andar'];
+    else if (predio === 'RADIOTERAPIA') andares = ['Térreo'];
+    else if (predio === 'TRAUMA') andares = ['1º Andar', '2º Andar', '3º Andar'];
+    else if (predio === 'CASA ROSA') andares = ['1º Andar', '2º Andar'];
+    
+    andares.forEach(a => { 
+        const opt = document.createElement('option'); 
+        opt.value = a; 
+        opt.textContent = a; 
+        selectAndar.appendChild(opt); 
+    });
+};
+
 function loading(estado) {
     const loader = document.getElementById('loader');
     if (loader) loader.style.display = estado ? 'flex' : 'none';
@@ -71,7 +90,7 @@ function loading(estado) {
 }
 
 // ==========================================
-// 3. INTELIGÊNCIA: COMPRESSÃO E UPLOAD
+// 3. COMPRESSÃO E UPLOAD
 // ==========================================
 async function comprimirEEnviarFoto(fileInput, prefixoNome) {
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
@@ -83,28 +102,20 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
         let arquivoParaUpload;
 
         if (ePDF) {
-            // Se for PDF, não tentamos comprimir (daria erro)
             console.log(`Arquivo PDF detectado (${prefixoNome}). Enviando direto...`);
             arquivoParaUpload = arquivoOriginal;
         } else {
-            // Se for imagem (JPG/PNG/etc), aplicamos a compressão de 0.2MB
             console.log(`Imagem detectada (${prefixoNome}). Comprimindo...`);
-            const options = {
-                maxSizeMB: 0.2,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true
-            };
+            const options = { maxSizeMB: 0.2, maxWidthOrHeight: 1920, useWebWorker: true };
             arquivoParaUpload = await imageCompression(arquivoOriginal, options);
         }
         
-        // Limpa o nome do arquivo (remove acentos e espaços)
         const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
         const nomeArquivo = `${prefixoNome}_${Date.now()}_${nomeLimpo}`;
 
-        console.log(`Fazendo upload de ${prefixoNome} para o Supabase...`);
         const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoParaUpload);
-        
         if (error) throw error;
+        
         return supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl;
 
     } catch (error) {
@@ -112,6 +123,7 @@ async function comprimirEEnviarFoto(fileInput, prefixoNome) {
         throw new Error(`Não foi possível processar o arquivo (${prefixoNome}). Verifique o formato e tente novamente.`);
     }
 }
+
 // ==========================================
 // 4. ENVIO DOS FORMULÁRIOS
 // ==========================================
@@ -119,19 +131,24 @@ window.enviarTreinamento = async function(event) {
     event.preventDefault();
     loading(true);
 
+    // 🟢 Junta Prédio, Andar e Setor para enviar padronizado
+    const predio = document.getElementById('tr_predio').value;
+    const andar = document.getElementById('tr_andar').value;
+    const setorInput = document.getElementById('tr_setor').value;
+    const localizacaoFormatada = `${predio} - ${setorInput} (${andar})`;
+
     const dados = {
         nome_solicitante: document.getElementById('tr_nome').value,
         email: document.getElementById('tr_email').value,
         telefone: document.getElementById('tr_telefone').value,
         cargo: document.getElementById('tr_cargo').value,
-        setor_andar: document.getElementById('tr_setor').value,
+        setor_andar: localizacaoFormatada, // Envia o dado formatado
         tema: document.getElementById('tr_tema').value,
         data_desejada: document.getElementById('tr_data').value || null,
         status: 'Pendente'
     };
 
     try {
-        // 🟢 SOLUÇÃO: Atualizado para supabaseClient
         const { error } = await supabaseClient.from('solicitacoes_treinamento').insert([dados]);
         if (error) throw error;
 
@@ -150,11 +167,16 @@ window.enviarCadastro = async function(event) {
     loading(true);
 
     try {
-        // 🟢 CORREÇÃO: Agora processamos APENAS o conselho se ele existir
         let urlConselho = null;
         if (document.getElementById('cad_tem_conselho').value === 'sim') {
             urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
         }
+
+        // 🟢 Junta Prédio, Andar e Setor
+        const predio = document.getElementById('cad_predio').value;
+        const andar = document.getElementById('cad_andar').value;
+        const setorInput = document.getElementById('cad_setor').value;
+        const localizacaoFormatada = `${predio} - ${setorInput} (${andar})`;
 
         const dados = {
             nome: document.getElementById('cad_nome').value,
@@ -169,8 +191,8 @@ window.enviarCadastro = async function(event) {
             especialidade: document.getElementById('cad_especialidade').value || null,
             vinculo_empregaticio: document.getElementById('cad_vinculo').value,
             matricula: document.getElementById('cad_matricula').value || null,
-            setor_andar: document.getElementById('cad_setor').value,
-            foto_documento_url: null, // Campo de documento desativado
+            setor_andar: localizacaoFormatada, // Envia o dado formatado
+            foto_documento_url: null, 
             foto_conselho_url: urlConselho,
             status: 'Pendente'
         };
@@ -189,7 +211,6 @@ window.enviarCadastro = async function(event) {
     }
 };
 
-// 🟢 ATUALIZADO: Função com E-mail e Telefone
 window.enviarLoginAD = async function(event) {
     event.preventDefault();
     loading(true);
