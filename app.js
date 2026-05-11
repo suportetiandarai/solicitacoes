@@ -67,17 +67,21 @@ window.toggleConselho = function() {
     const bloco = document.getElementById('bloco_conselho');
     const num = document.getElementById('cad_num_conselho');
     const foto = document.getElementById('cad_foto_conselho');
+    const fotoVerso = document.getElementById('cad_foto_conselho_verso'); // NOVO
 
     if (select === 'sim') {
         bloco.style.display = 'flex';
         num.required = true;
         foto.required = true;
+        fotoVerso.required = true;
     } else {
         bloco.style.display = 'none';
         num.required = false;
         foto.required = false;
+        fotoVerso.required = false;
         num.value = 'ISENTO'; 
         foto.value = ''; 
+        fotoVerso.value = '';
     }
 };
 
@@ -203,9 +207,19 @@ window.enviarCadastro = async function(event) {
     loading(true);
 
     try {
-        let urlConselho = null;
+        let urlConselhoFinal = null;
         if (document.getElementById('cad_tem_conselho').value === 'sim') {
-            urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
+            // Sobe a Frente
+            const urlFrente = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho_frente');
+            // Sobe o Verso
+            const urlVerso = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho_verso'), 'conselho_verso');
+            
+            // Cola os dois links com o nosso separador mágico "|||"
+            if (urlFrente && urlVerso) {
+                urlConselhoFinal = urlFrente + "|||" + urlVerso;
+            } else {
+                urlConselhoFinal = urlFrente || urlVerso;
+            }
         }
 
         const predio = document.getElementById('cad_predio').value;
@@ -228,7 +242,7 @@ window.enviarCadastro = async function(event) {
             matricula: document.getElementById('cad_matricula').value || null,
             setor_andar: localizacaoFormatada, 
             foto_documento_url: null, 
-            foto_conselho_url: urlConselho,
+            foto_conselho_url: urlConselhoFinal, // 🟢 Envia as duas URLs coladas aqui
             status: 'Pendente'
         };
 
