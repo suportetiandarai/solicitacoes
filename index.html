@@ -279,15 +279,19 @@
                 </div>
 
                 <div id="bloco_conselho" class="row" style="display: flex;">
-                    <div class="col form-group">
-                        <label for="cad_num_conselho">Número do Conselho (Com UF) *</label>
-                        <input type="text" id="cad_num_conselho" placeholder="Ex: CRM-RJ 123456" required>
-                    </div>
-                    <div class="col form-group">
-                        <label for="cad_foto_conselho">Foto do Conselho (Frente e Verso) *</label>
-                        <input type="file" id="cad_foto_conselho" accept="image/*,application/pdf" required>
-                    </div>
-                </div>
+    <div class="col form-group">
+        <label for="cad_num_conselho">Número do Conselho (Com UF) *</label>
+        <input type="text" id="cad_num_conselho" placeholder="Ex: CRM-RJ 123456" required>
+    </div>
+    <div class="col form-group">
+        <label for="cad_foto_conselho">Foto (FRENTE) *</label>
+        <input type="file" id="cad_foto_conselho" accept="image/*,application/pdf" required>
+    </div>
+    <div class="col form-group">
+        <label for="cad_foto_conselho_verso">Foto (VERSO) *</label>
+        <input type="file" id="cad_foto_conselho_verso" accept="image/*,application/pdf" required>
+    </div>
+</div>
           
                 <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação de Cadastro</button>
             </form>
