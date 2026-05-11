@@ -133,36 +133,49 @@ function loading(estado) {
 // ==========================================
 // 3. COMPRESSÃO E UPLOAD
 // ==========================================
+// ==========================================
+// 3. COMPRESSÃO E UPLOAD (MULTILINE)
+// ==========================================
 async function comprimirEEnviarFoto(fileInput, prefixoNome) {
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
 
-    const arquivoOriginal = fileInput.files[0];
-    const ePDF = arquivoOriginal.type === 'application/pdf';
+    let urlsGeradas = []; // Cria uma lista vazia para guardar os links
 
-    try {
-        let arquivoParaUpload;
+    // 🟢 LOOP MÁGICO: Passa por todos os arquivos que o usuário selecionou no campo
+    for (let i = 0; i < fileInput.files.length; i++) {
+        const arquivoOriginal = fileInput.files[i];
+        const ePDF = arquivoOriginal.type === 'application/pdf';
 
-        if (ePDF) {
-            console.log(`Arquivo PDF detectado (${prefixoNome}). Enviando direto...`);
-            arquivoParaUpload = arquivoOriginal;
-        } else {
-            console.log(`Imagem detectada (${prefixoNome}). Comprimindo...`);
-            const options = { maxSizeMB: 0.2, maxWidthOrHeight: 1920, useWebWorker: true };
-            arquivoParaUpload = await imageCompression(arquivoOriginal, options);
+        try {
+            let arquivoParaUpload;
+
+            if (ePDF) {
+                console.log(`Arquivo PDF detectado. Enviando direto...`);
+                arquivoParaUpload = arquivoOriginal;
+            } else {
+                console.log(`Imagem detectada. Comprimindo...`);
+                const options = { maxSizeMB: 0.2, maxWidthOrHeight: 1920, useWebWorker: true };
+                arquivoParaUpload = await imageCompression(arquivoOriginal, options);
+            }
+            
+            const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
+            // Colocamos o "i" (número) no nome para o Supabase não sobrepor a frente e o verso
+            const nomeArquivo = `${prefixoNome}_${i}_${Date.now()}_${nomeLimpo}`;
+
+            const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoParaUpload);
+            if (error) throw error;
+            
+            // Guarda o link gerado na nossa lista
+            urlsGeradas.push(supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl);
+
+        } catch (error) {
+            console.error(`Erro no processamento:`, error);
+            throw new Error(`Não foi possível processar um dos arquivos. Tente novamente.`);
         }
-        
-        const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
-        const nomeArquivo = `${prefixoNome}_${Date.now()}_${nomeLimpo}`;
-
-        const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoParaUpload);
-        if (error) throw error;
-        
-        return supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl;
-
-    } catch (error) {
-        console.error(`Erro no processamento de ${prefixoNome}:`, error);
-        throw new Error(`Não foi possível processar o arquivo (${prefixoNome}). Verifique o formato e tente novamente.`);
     }
+
+    // 🟢 Junta todas as URLs geradas separando-as por "|||" e envia pro banco
+    return urlsGeradas.join('|||');
 }
 
 // ==========================================
