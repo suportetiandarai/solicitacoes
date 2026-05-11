@@ -7,6 +7,45 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==========================================
+// 0. SISTEMA DE AVISOS INTERATIVOS (TOASTS)
+// ==========================================
+window.mostrarAviso = function(mensagem, tipo = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+
+    let icone = '💡';
+    let titulo = 'Sistema';
+
+    if (tipo === 'erro') { icone = '❌'; titulo = 'Ops, deu erro'; }
+    else if (tipo === 'sucesso') { icone = '✅'; titulo = 'Tudo certo!'; }
+    else if (tipo === 'aviso') { icone = '⚠️'; titulo = 'Atenção'; }
+
+    toast.innerHTML = `<span class="toast-icon">${icone}</span><div class="toast-content"><span class="toast-title">${titulo}</span><span>${mensagem}</span></div>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 4500);
+};
+
+// O TRUQUE: Intercepta o alert() nativo para não abrir a caixa padrão do HTML
+window.alert = function(mensagem) {
+    let tipo = 'info';
+    let msgLimpa = mensagem;
+    
+    if (mensagem.toLowerCase().includes('erro') || mensagem.includes('❌')) tipo = 'erro';
+    else if (mensagem.toLowerCase().includes('sucesso') || mensagem.includes('✅')) tipo = 'sucesso';
+    else if (mensagem.toLowerCase().includes('atenção') || mensagem.includes('⚠️')) tipo = 'aviso';
+    
+    msgLimpa = mensagem.replace(/[✅❌⚠️💡]/g, '').trim();
+    mostrarAviso(msgLimpa, tipo);
+};
+
+// ==========================================
 // 2. CONTROLE DA TELA E MÁSCARAS
 // ==========================================
 
