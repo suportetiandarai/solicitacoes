@@ -14,7 +14,7 @@
 <body>
 
     <header>
-        <h1>Central de Serviços T.I - Andaraí</h1>
+        <h1>Central de Serviços T.I</h1>
         <p>Preencha os formulários abaixo ou acesse nosso canal de suporte.</p>
     </header>
 
@@ -102,7 +102,6 @@
                     <div class="col form-group">
                         <label for="cad_cargo">Cargo *</label>
                         <input type="text" id="cad_cargo" list="lista-cargos" placeholder="Digite para pesquisar seu cargo..." autocomplete="off" required>
-                        
                         <datalist id="lista-cargos">
                             <option value="DIRETOR ADMINISTRATIVO"></option>
                             <option value="DIRETOR DE SERVICOS DE SAUDE"></option>
@@ -387,7 +386,7 @@
 
                 <div class="form-group">
                     <label for="tr_tema">Tema do Treinamento Necessário *</label>
-                    <input type="text" id="tr_tema" placeholder="Ex: Prontuário / Evolução Interna / etc ." required>
+                    <input type="text" id="tr_tema" placeholder="Ex: Uso do PEP, Configuração de Impressora..." required>
                 </div>
 
                 <div class="form-group">
@@ -405,6 +404,8 @@
         </div>
 
     </div>
+
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>
