@@ -215,24 +215,45 @@ window.enviarTreinamento = async function(event) {
     }
 };
 
+// ==========================================
+// 4. ENVIO DOS FORMULÁRIOS (COM TRAVAS DE SEGURANÇA)
+// ==========================================
+
 window.enviarCadastro = async function(event) {
     event.preventDefault();
+
+    // 🟢 1. VALIDAÇÃO: Obriga a ter Nome e Sobrenome
+    const nomeCompleto = document.getElementById('cad_nome').value.trim();
+    const partesNome = nomeCompleto.split(/\s+/); // Separa pelos espaços
+    if (partesNome.length < 2) {
+        return alert("❌ Por favor, informe seu NOME e SOBRENOME completos para o cadastro.");
+    }
+
+    const cpf = document.getElementById('cad_cpf').value;
     loading(true);
 
     try {
-        let urlConselhoFinal = null;
-        if (document.getElementById('cad_tem_conselho').value === 'sim') {
-            // Sobe a Frente
-            const urlFrente = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho_frente');
-            // Sobe o Verso
-            const urlVerso = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho_verso'), 'conselho_verso');
-            
-            // Cola os dois links com o nosso separador mágico "|||"
-            if (urlFrente && urlVerso) {
-                urlConselhoFinal = urlFrente + "|||" + urlVerso;
-            } else {
-                urlConselhoFinal = urlFrente || urlVerso;
+        // 🟢 2. VERIFICAÇÃO DE DUPLICIDADE (Usa a função segura do banco)
+        const { data: statusExistente, error: errBusca } = await supabaseClient.rpc('checar_status_solicitacao', {
+            tabela_alvo: 'cadastro',
+            cpf_busca: cpf
+        });
+
+        if (!errBusca && statusExistente) {
+            if (statusExistente === 'Pendente' || statusExistente === 'Aguardando') {
+                loading(false);
+                return alert("⚠️ Você já possui uma solicitação de TIMED em andamento. Por favor, aguarde o processamento pela T.I.");
+            } else if (statusExistente === 'Realizado') {
+                loading(false);
+                return alert("⚠️ Já existe um cadastro TIMED para o seu CPF. Caso não tenha acesso, solicite o reset da senha. Se solicitou recentemente, aguarde o recebimento dos dados.");
             }
+            // Se for 'Cancelado', ele ignora e permite solicitar de novo
+        }
+
+        // 3. CONTINUA COM O UPLOAD (Fotos e Envio)
+        let urlConselho = null;
+        if (document.getElementById('cad_tem_conselho').value === 'sim') {
+            urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
         }
 
         const predio = document.getElementById('cad_predio').value;
@@ -241,12 +262,12 @@ window.enviarCadastro = async function(event) {
         const localizacaoFormatada = `${predio} - ${setorInput} (${andar})`;
 
         const dados = {
-            nome: document.getElementById('cad_nome').value,
+            nome: nomeCompleto,
             email: document.getElementById('cad_email').value,
             telefone: document.getElementById('cad_telefone').value,
             sexo: document.getElementById('cad_sexo').value,
             data_nascimento: document.getElementById('cad_nascimento').value,
-            cpf: document.getElementById('cad_cpf').value,
+            cpf: cpf,
             cns: document.getElementById('cad_cns').value || null,
             numero_conselho: document.getElementById('cad_num_conselho').value || 'ISENTO',
             cargo: document.getElementById('cad_cargo').value,
@@ -255,7 +276,7 @@ window.enviarCadastro = async function(event) {
             matricula: document.getElementById('cad_matricula').value || null,
             setor_andar: localizacaoFormatada, 
             foto_documento_url: null, 
-            foto_conselho_url: urlConselhoFinal, // 🟢 Envia as duas URLs coladas aqui
+            foto_conselho_url: urlConselho, 
             status: 'Pendente'
         };
 
@@ -275,17 +296,43 @@ window.enviarCadastro = async function(event) {
 
 window.enviarLoginAD = async function(event) {
     event.preventDefault();
+
+    // 🟢 1. VALIDAÇÃO: Obriga a ter Nome e Sobrenome
+    const nomeCompleto = document.getElementById('ad_nome').value.trim();
+    const partesNome = nomeCompleto.split(/\s+/);
+    if (partesNome.length < 2) {
+        return alert("❌ Por favor, informe seu NOME e SOBRENOME completos para criar o Login.");
+    }
+
+    const cpf = document.getElementById('ad_cpf').value;
     loading(true);
 
-    const dados = {
-        nome_completo: document.getElementById('ad_nome').value,
-        cpf: document.getElementById('ad_cpf').value,
-        email: document.getElementById('ad_email').value,
-        telefone: document.getElementById('ad_telefone').value,
-        status: 'Pendente'
-    };
-
     try {
+        // 🟢 2. VERIFICAÇÃO DE DUPLICIDADE AD
+        const { data: statusExistente, error: errBusca } = await supabaseClient.rpc('checar_status_solicitacao', {
+            tabela_alvo: 'ad',
+            cpf_busca: cpf
+        });
+
+        if (!errBusca && statusExistente) {
+            if (statusExistente === 'Pendente') {
+                loading(false);
+                return alert("⚠️ Sua solicitação de Login já está na fila! Por favor, aguarde o retorno da equipe de T.I.");
+            } else if (statusExistente === 'Realizado') {
+                loading(false);
+                return alert("⚠️ Já existe uma conta ativa para o seu CPF. Caso tenha esquecido a senha, acesse o suporte para reset. Se solicitou agora, aguarde o envio das credenciais.");
+            }
+        }
+
+        // 3. ENVIO DOS DADOS
+        const dados = {
+            nome_completo: nomeCompleto,
+            cpf: cpf,
+            email: document.getElementById('ad_email').value,
+            telefone: document.getElementById('ad_telefone').value,
+            status: 'Pendente'
+        };
+
         const { error } = await supabaseClient.from('solicitacoes_ad').insert([dados]);
         if (error) throw error;
 
