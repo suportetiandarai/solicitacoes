@@ -90,3 +90,8 @@ test('portal utiliza tema claro institucional', () => {
   assert.match(style, /linear-gradient\(180deg,\s*#f8fbff/);
   assert.match(style, /\.menu-card,\s*\n\.form-section\s*\{\s*\n\s*background:\s*#ffffff/);
 });
+
+test('cabeçalho identifica o Portal de Serviços do Hospital do Andaraí', () => {
+  assert.match(html, /<h1>Portal de Serviços - Hospital do Andaraí<\/h1>/);
+  assert.doesNotMatch(html, />GESTÃO TI<\/span>/);
+});
