@@ -6,7 +6,6 @@
     <title>Portal de Serviços T.I - Andaraí</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
 
     <link rel="stylesheet" href="style.css">
@@ -51,6 +50,7 @@
             </div>
 
             <form id="form-cad" onsubmit="enviarCadastro(event)">
+                <input id="cad_website" class="website-field" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <div class="row">
                     <div class="col form-group">
                         <label for="cad_nome">Nome Completo *</label>
@@ -278,7 +278,7 @@
                     </select>
                 </div>
 
-                <div id="bloco_conselho" class="row" style="display: flex;">
+<div id="bloco_conselho" class="row" style="display: flex;">
     <div class="col form-group">
         <label for="cad_num_conselho">Número do Conselho (Com UF) *</label>
         <input type="text" id="cad_num_conselho" placeholder="Ex: CRM-RJ 123456" required>
@@ -289,6 +289,11 @@
         <span class="help-text" style="color: #0ea5e9;">Você pode selecionar os 2 arquivos juntos (Frente e Verso).</span>
     </div>
 </div>
+                <div class="form-group">
+                    <label for="cad_foto_documento">Foto do Documento</label>
+                    <input type="file" id="cad_foto_documento" accept="image/*,application/pdf" multiple>
+                    <span class="help-text">Opcional. Você pode selecionar frente e verso juntos.</span>
+                </div>
           
                 <button type="submit" id="btn-submit-cad" class="submit-btn">Enviar Solicitação de Cadastro</button>
             </form>
@@ -305,6 +310,7 @@
             </div>
 
             <form id="form-ad" onsubmit="enviarLoginAD(event)">
+                <input id="ad_website" class="website-field" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <div class="row mt-15">
                     <div class="col form-group">
                         <label for="ad_nome">Nome Completo *</label>
@@ -338,6 +344,7 @@
             </div>
 
             <form id="form-tr" onsubmit="enviarTreinamento(event)">
+                <input id="tr_website" class="website-field" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <div class="row">
                     <div class="col form-group">
                         <label for="tr_nome">Nome do Solicitante *</label>

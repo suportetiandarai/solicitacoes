@@ -20,13 +20,22 @@
     font-family: 'Inter', sans-serif; 
 }
 
-body { 
+body {
     background: radial-gradient(circle at top, var(--bg-dark), var(--bg-darker));
     background-attachment: fixed;
     color: var(--text-main); 
     padding-bottom: 50px; 
     line-height: 1.5;
     min-height: 100vh;
+}
+
+.website-field {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
 }
 
 /* Cabeçalho Futurista */

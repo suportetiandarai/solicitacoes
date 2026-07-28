@@ -1,294 +1,236 @@
-// ==========================================
-// 0. SISTEMA DE AVISOS INTERATIVOS (TOASTS)
-// ==========================================
+const INTAKE_URL = 'https://cctygrudsyoowuotlyfo.supabase.co/functions/v1/google-sheets-intake';
+const MAX_FILE_BYTES = 350_000;
+
 window.mostrarAviso = function(mensagem, tipo = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
-
-    let icone = '💡';
-    let titulo = 'Sistema';
-
-    if (tipo === 'erro') { icone = '❌'; titulo = 'Ops, deu erro'; }
-    else if (tipo === 'sucesso') { icone = '✅'; titulo = 'Tudo certo!'; }
-    else if (tipo === 'aviso') { icone = '⚠️'; titulo = 'Atenção'; }
-
-    toast.innerHTML = `<span class="toast-icon">${icone}</span><div class="toast-content"><span class="toast-title">${titulo}</span><span>${mensagem}</span></div>`;
+    const titles = { erro: 'Não foi possível enviar', sucesso: 'Tudo certo!', aviso: 'Atenção', info: 'Sistema' };
+    const content = document.createElement('div');
+    content.className = 'toast-content';
+    const title = document.createElement('span');
+    title.className = 'toast-title';
+    title.textContent = titles[tipo] || titles.info;
+    const message = document.createElement('span');
+    message.textContent = String(mensagem || '');
+    content.append(title, message);
+    toast.appendChild(content);
     container.appendChild(toast);
-
     setTimeout(() => {
         toast.classList.add('hiding');
-        toast.addEventListener('animationend', () => toast.remove());
-    }, 4500);
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }, 5000);
 };
 
 window.alert = function(mensagem) {
-    let tipo = 'info';
-    let msgLimpa = mensagem;
-    
-    if (mensagem.toLowerCase().includes('erro') || mensagem.includes('❌')) tipo = 'erro';
-    else if (mensagem.toLowerCase().includes('sucesso') || mensagem.includes('✅')) tipo = 'sucesso';
-    else if (mensagem.toLowerCase().includes('atenção') || mensagem.includes('⚠️')) tipo = 'aviso';
-    
-    msgLimpa = mensagem.replace(/[✅❌⚠️💡]/g, '').trim();
-    mostrarAviso(msgLimpa, tipo);
+    const clean = String(mensagem || '').replace(/[✅❌⚠️💡]/g, '').trim();
+    const lower = clean.toLowerCase();
+    const type = lower.includes('erro') || lower.includes('não foi possível') ? 'erro'
+        : lower.includes('sucesso') ? 'sucesso'
+            : lower.includes('atenção') || lower.includes('já ') ? 'aviso' : 'info';
+    window.mostrarAviso(clean, type);
 };
 
-// ==========================================
-// 1. CONFIGURAÇÃO DO SUPABASE 
-// ==========================================
-const SUPABASE_URL = 'https://ygnphizpnhcsblmwzmzj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbnBoaXpwbmhjc2JsbXd6bXpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzUyNjAsImV4cCI6MjA5MjAxMTI2MH0.hLhpjB5WUDzZX1MRIPVzPVFgq8mcHmnhkhWreAjEFXI';
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ==========================================
-// 2. CONTROLE DA TELA E MÁSCARAS
-// ==========================================
-
 window.mostrarTela = function(idTela) {
-    const telas = ['menu-principal', 'tela-cadastro', 'tela-treinamento', 'tela-login-ad'];
-    telas.forEach(t => {
-        const el = document.getElementById(t);
-        if (el) el.style.display = 'none';
-    });
-    
-    const alvo = document.getElementById(idTela);
-    if (alvo) {
-        alvo.style.display = (idTela === 'menu-principal') ? 'flex' : 'block';
-        window.scrollTo(0,0);
+    for (const id of ['menu-principal', 'tela-cadastro', 'tela-treinamento', 'tela-login-ad']) {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
+    }
+    const target = document.getElementById(idTela);
+    if (target) {
+        target.style.display = idTela === 'menu-principal' ? 'flex' : 'block';
+        window.scrollTo(0, 0);
     }
 };
 
 window.toggleConselho = function() {
-    const select = document.getElementById('cad_tem_conselho').value;
-    const bloco = document.getElementById('bloco_conselho');
-    const num = document.getElementById('cad_num_conselho');
-    const foto = document.getElementById('cad_foto_conselho');
-    const fotoVerso = document.getElementById('cad_foto_conselho_verso'); // NOVO
-
-    if (select === 'sim') {
-        bloco.style.display = 'flex';
-        num.required = true;
-        foto.required = true;
-        fotoVerso.required = true;
-    } else {
-        bloco.style.display = 'none';
-        num.required = false;
-        foto.required = false;
-        fotoVerso.required = false;
-        num.value = 'ISENTO'; 
-        foto.value = ''; 
-        fotoVerso.value = '';
+    const requiresCouncil = document.getElementById('cad_tem_conselho').value === 'sim';
+    const block = document.getElementById('bloco_conselho');
+    const number = document.getElementById('cad_num_conselho');
+    const files = document.getElementById('cad_foto_conselho');
+    block.style.display = requiresCouncil ? 'flex' : 'none';
+    number.required = requiresCouncil;
+    files.required = requiresCouncil;
+    if (!requiresCouncil) {
+        number.value = 'ISENTO';
+        files.value = '';
+    } else if (number.value === 'ISENTO') {
+        number.value = '';
     }
 };
 
-window.mascaraCPF = function(cpf) {
-    let v = cpf.value.replace(/\D/g, ""); 
-    if (v.length > 11) v = v.slice(0, 11); 
-    v = v.replace(/(\d{3})(\d)/, "$1.$2");
-    v = v.replace(/(\d{3})(\d)/, "$1.$2");
-    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    cpf.value = v;
+window.mascaraCPF = function(input) {
+    let value = input.value.replace(/\D/g, '').slice(0, 11);
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    input.value = value;
 };
 
-window.mascaraTelefone = function(tel) {
-    let v = tel.value.replace(/\D/g, ""); 
-    if (v.length > 11) v = v.slice(0, 11); 
-    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
-    tel.value = v;
+window.mascaraTelefone = function(input) {
+    let value = input.value.replace(/\D/g, '').slice(0, 11);
+    value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+    value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+    input.value = value;
 };
 
-window.atualizarAndaresEx = function(predioId, andarId) {
-    const predio = document.getElementById(predioId).value; 
-    const selectAndar = document.getElementById(andarId); 
-    selectAndar.innerHTML = '<option value="">Selecione...</option>';
-    let andares = [];
-    
-    if (predio === 'UPI') andares = ['SL CTI 1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar', '6º Andar', '7º Andar', '8º Andar', '9º Andar', '10º Andar', '11º Andar', '12º Andar', '13º Andar'];
-    else if (predio === 'UPE') andares = ['1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar'];
-    else if (predio === 'PIMAG') andares = ['1º Andar', '2º Andar', '3º Andar', '4º Andar'];
-    else if (predio === 'RADIOTERAPIA') andares = ['Térreo'];
-    else if (predio === 'TRAUMA') andares = ['1º Andar', '2º Andar', '3º Andar'];
-    else if (predio === 'CASA ROSA') andares = ['1º Andar', '2º Andar'];
-    
-    andares.forEach(a => { 
-        const opt = document.createElement('option'); 
-        opt.value = a; 
-        opt.textContent = a; 
-        selectAndar.appendChild(opt); 
-    });
+window.atualizarAndaresEx = function(buildingId, floorId) {
+    const building = document.getElementById(buildingId).value;
+    const floor = document.getElementById(floorId);
+    const options = {
+        UPI: ['SL CTI 1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar', '6º Andar', '7º Andar', '8º Andar', '9º Andar', '10º Andar', '11º Andar', '12º Andar', '13º Andar'],
+        UPE: ['1º Andar', '2º Andar', '3º Andar', '4º Andar', '5º Andar'],
+        PIMAG: ['1º Andar', '2º Andar', '3º Andar', '4º Andar'],
+        RADIOTERAPIA: ['Térreo'],
+        TRAUMA: ['1º Andar', '2º Andar', '3º Andar'],
+        'CASA ROSA': ['1º Andar', '2º Andar']
+    };
+    floor.replaceChildren(new Option('Selecione...', ''));
+    for (const value of options[building] || []) floor.add(new Option(value, value));
 };
 
-function loading(estado) {
-    const loader = document.getElementById('loader');
-    if (loader) loader.style.display = estado ? 'flex' : 'none';
-    const botoes = document.querySelectorAll('.submit-btn');
-    botoes.forEach(b => b.disabled = estado);
+function loading(active) {
+    document.getElementById('loader').style.display = active ? 'flex' : 'none';
+    document.querySelectorAll('.submit-btn').forEach(button => { button.disabled = active; });
 }
 
-// ==========================================
-// 3. COMPRESSÃO E UPLOAD
-// ==========================================
-// ==========================================
-// 3. COMPRESSÃO E UPLOAD (MULTILINE)
-// ==========================================
-async function comprimirEEnviarFoto(fileInput, prefixoNome) {
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
+function fullName(value) {
+    return String(value || '').trim().split(/\s+/).length >= 2;
+}
 
-    let urlsGeradas = []; // Cria uma lista vazia para guardar os links
+function location(prefix) {
+    const building = document.getElementById(`${prefix}_predio`).value;
+    const floor = document.getElementById(`${prefix}_andar`).value;
+    const sector = document.getElementById(`${prefix}_setor`).value.trim();
+    return `${building} - ${sector} (${floor})`;
+}
 
-    // 🟢 LOOP MÁGICO: Passa por todos os arquivos que o usuário selecionou no campo
-    for (let i = 0; i < fileInput.files.length; i++) {
-        const arquivoOriginal = fileInput.files[i];
-        const ePDF = arquivoOriginal.type === 'application/pdf';
+function toBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let index = 0; index < bytes.length; index += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+    }
+    return btoa(binary);
+}
 
-        try {
-            let arquivoParaUpload;
-
-            if (ePDF) {
-                console.log(`Arquivo PDF detectado. Enviando direto...`);
-                arquivoParaUpload = arquivoOriginal;
-            } else {
-                console.log(`Imagem detectada. Comprimindo...`);
-                const options = { maxSizeMB: 0.2, maxWidthOrHeight: 1920, useWebWorker: true };
-                arquivoParaUpload = await imageCompression(arquivoOriginal, options);
-            }
-            
-            const nomeLimpo = arquivoOriginal.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
-            // Colocamos o "i" (número) no nome para o Supabase não sobrepor a frente e o verso
-            const nomeArquivo = `${prefixoNome}_${i}_${Date.now()}_${nomeLimpo}`;
-
-            const { data, error } = await supabaseClient.storage.from('documentos_externos').upload(nomeArquivo, arquivoParaUpload);
-            if (error) throw error;
-            
-            // Guarda o link gerado na nossa lista
-            urlsGeradas.push(supabaseClient.storage.from('documentos_externos').getPublicUrl(nomeArquivo).data.publicUrl);
-
-        } catch (error) {
-            console.error(`Erro no processamento:`, error);
-            throw new Error(`Não foi possível processar um dos arquivos. Tente novamente.`);
+async function prepareFiles(input) {
+    const files = Array.from(input?.files || []).slice(0, 4);
+    const result = [];
+    for (const original of files) {
+        if (!/^(image\/(?:jpeg|png|webp)|application\/pdf)$/.test(original.type)) {
+            throw new Error('Envie somente imagens JPG, PNG, WEBP ou arquivos PDF.');
         }
+        let processed = original;
+        if (original.type.startsWith('image/')) {
+            processed = await imageCompression(original, {
+                maxSizeMB: 0.25,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
+            });
+        }
+        if (processed.size > MAX_FILE_BYTES) {
+            throw new Error(`O arquivo “${original.name}” excede o limite após a compactação.`);
+        }
+        result.push({
+            name: original.name,
+            type: original.type,
+            base64: toBase64(await processed.arrayBuffer())
+        });
     }
-
-    // 🟢 Junta todas as URLs geradas separando-as por "|||" e envia pro banco
-    return urlsGeradas.join('|||');
+    return result;
 }
 
-// ==========================================
-// 4. ENVIO DOS FORMULÁRIOS
-// ==========================================
+function errorMessage(code, type) {
+    if (code === 'DUPLICATE_PENDING') {
+        return type === 'ad'
+            ? 'Sua solicitação de Login já está na fila. Aguarde o retorno da equipe de T.I.'
+            : 'Você já possui uma solicitação de TIMED em andamento. Aguarde o processamento pela T.I.';
+    }
+    if (code === 'DUPLICATE_COMPLETED') {
+        return type === 'ad'
+            ? 'Já existe uma conta ativa para este CPF. Para recuperar o acesso, solicite o reset da senha.'
+            : 'Já existe um cadastro TIMED para este CPF. Caso não tenha acesso, solicite o reset da senha.';
+    }
+    if (code === 'PAYLOAD_TOO_LARGE') return 'Os arquivos enviados excedem o limite permitido.';
+    if (code === 'INVALID_REQUEST') return 'Revise os campos informados e tente novamente.';
+    return 'Não foi possível enviar agora. Tente novamente em alguns instantes.';
+}
+
+async function submit(payload) {
+    const response = await fetch(INTAKE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const result = await response.json().catch(() => ({ ok: false, code: 'INVALID_RESPONSE' }));
+    if (!response.ok || !result.ok) {
+        const error = new Error(errorMessage(result.code, payload.type));
+        error.code = result.code;
+        throw error;
+    }
+    return result;
+}
+
 window.enviarTreinamento = async function(event) {
     event.preventDefault();
+    const name = document.getElementById('tr_nome').value.trim();
+    if (!fullName(name)) return alert('Informe seu nome e sobrenome completos.');
     loading(true);
-
-    const predio = document.getElementById('tr_predio').value;
-    const andar = document.getElementById('tr_andar').value;
-    const setorInput = document.getElementById('tr_setor').value;
-    const localizacaoFormatada = `${predio} - ${setorInput} (${andar})`;
-
-    const dados = {
-        nome_solicitante: document.getElementById('tr_nome').value,
-        email: document.getElementById('tr_email').value,
-        telefone: document.getElementById('tr_telefone').value,
-        cargo: document.getElementById('tr_cargo').value,
-        setor_andar: localizacaoFormatada, 
-        tema: document.getElementById('tr_tema').value,
-        data_desejada: document.getElementById('tr_data').value || null,
-        status: 'Pendente'
-    };
-
     try {
-        const { error } = await supabaseClient.from('solicitacoes_treinamento').insert([dados]);
-        if (error) throw error;
-
-        alert("✅ Solicitação de treinamento enviada com sucesso!");
+        await submit({
+            type: 'training',
+            name,
+            email: document.getElementById('tr_email').value,
+            phone: document.getElementById('tr_telefone').value,
+            jobTitle: document.getElementById('tr_cargo').value,
+            location: location('tr'),
+            topic: document.getElementById('tr_tema').value,
+            desiredAt: document.getElementById('tr_data').value,
+            website: document.getElementById('tr_website').value
+        });
+        mostrarAviso('Solicitação de treinamento enviada com sucesso!', 'sucesso');
         document.getElementById('form-tr').reset();
         window.mostrarTela('menu-principal');
-    } catch (err) {
-        alert("❌ Erro ao enviar treinamento: " + err.message);
+    } catch (error) {
+        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
     } finally {
         loading(false);
     }
 };
 
-// ==========================================
-// 4. ENVIO DOS FORMULÁRIOS (COM TRAVAS DE SEGURANÇA)
-// ==========================================
-
 window.enviarCadastro = async function(event) {
     event.preventDefault();
-
-    // 🟢 1. VALIDAÇÃO: Obriga a ter Nome e Sobrenome
-    const nomeCompleto = document.getElementById('cad_nome').value.trim();
-    const partesNome = nomeCompleto.split(/\s+/); // Separa pelos espaços
-    if (partesNome.length < 2) {
-        return alert("❌ Por favor, informe seu NOME e SOBRENOME completos para o cadastro.");
-    }
-
-    const cpf = document.getElementById('cad_cpf').value;
+    const name = document.getElementById('cad_nome').value.trim();
+    if (!fullName(name)) return alert('Informe seu nome e sobrenome completos para o cadastro.');
     loading(true);
-
     try {
-        // 🟢 2. VERIFICAÇÃO DE DUPLICIDADE (Usa a função segura do banco)
-        const { data: statusExistente, error: errBusca } = await supabaseClient.rpc('checar_status_solicitacao', {
-            tabela_alvo: 'cadastro',
-            cpf_busca: cpf
-        });
-
-        if (!errBusca && statusExistente) {
-            if (statusExistente === 'Pendente' || statusExistente === 'Aguardando') {
-                loading(false);
-                return alert("⚠️ Você já possui uma solicitação de TIMED em andamento. Por favor, aguarde o processamento pela T.I.");
-            } else if (statusExistente === 'Realizado') {
-                loading(false);
-                return alert("⚠️ Já existe um cadastro TIMED para o seu CPF. Caso não tenha acesso, solicite o reset da senha. Se solicitou recentemente, aguarde o recebimento dos dados.");
-            }
-            // Se for 'Cancelado', ele ignora e permite solicitar de novo
-        }
-
-        // 3. CONTINUA COM O UPLOAD (Fotos e Envio)
-        let urlConselho = null;
-        if (document.getElementById('cad_tem_conselho').value === 'sim') {
-            urlConselho = await comprimirEEnviarFoto(document.getElementById('cad_foto_conselho'), 'conselho');
-        }
-
-        const predio = document.getElementById('cad_predio').value;
-        const andar = document.getElementById('cad_andar').value;
-        const setorInput = document.getElementById('cad_setor').value;
-        const localizacaoFormatada = `${predio} - ${setorInput} (${andar})`;
-
-        const dados = {
-            nome: nomeCompleto,
+        const payload = {
+            type: 'timed',
+            name,
             email: document.getElementById('cad_email').value,
-            telefone: document.getElementById('cad_telefone').value,
-            sexo: document.getElementById('cad_sexo').value,
-            data_nascimento: document.getElementById('cad_nascimento').value,
-            cpf: cpf,
-            cns: document.getElementById('cad_cns').value || null,
-            numero_conselho: document.getElementById('cad_num_conselho').value || 'ISENTO',
-            cargo: document.getElementById('cad_cargo').value,
-            especialidade: document.getElementById('cad_especialidade').value || null,
-            vinculo_empregaticio: document.getElementById('cad_vinculo').value,
-            matricula: document.getElementById('cad_matricula').value || null,
-            setor_andar: localizacaoFormatada, 
-            foto_documento_url: null, 
-            foto_conselho_url: urlConselho, 
-            status: 'Pendente'
+            phone: document.getElementById('cad_telefone').value,
+            sex: document.getElementById('cad_sexo').value,
+            birthDate: document.getElementById('cad_nascimento').value,
+            cpf: document.getElementById('cad_cpf').value,
+            cns: document.getElementById('cad_cns').value,
+            councilNumber: document.getElementById('cad_num_conselho').value,
+            jobTitle: document.getElementById('cad_cargo').value,
+            specialty: document.getElementById('cad_especialidade').value,
+            employment: document.getElementById('cad_vinculo').value,
+            registration: document.getElementById('cad_matricula').value,
+            location: location('cad'),
+            councilFiles: await prepareFiles(document.getElementById('cad_foto_conselho')),
+            documentFiles: await prepareFiles(document.getElementById('cad_foto_documento')),
+            website: document.getElementById('cad_website').value
         };
-
-        const { error } = await supabaseClient.from('solicitacoes_cadastro').insert([dados]);
-        if (error) throw error;
-
-        alert("✅ Cadastro enviado com sucesso!");
+        await submit(payload);
+        mostrarAviso('Cadastro enviado com sucesso!', 'sucesso');
         document.getElementById('form-cad').reset();
         window.mostrarTela('menu-principal');
-
-    } catch (err) {
-        alert("❌ Erro ao enviar: " + err.message);
+    } catch (error) {
+        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
     } finally {
         loading(false);
     }
@@ -296,89 +238,24 @@ window.enviarCadastro = async function(event) {
 
 window.enviarLoginAD = async function(event) {
     event.preventDefault();
-
-    // 🟢 1. VALIDAÇÃO: Obriga a ter Nome e Sobrenome
-    const nomeCompleto = document.getElementById('ad_nome').value.trim();
-    const partesNome = nomeCompleto.split(/\s+/);
-    if (partesNome.length < 2) {
-        return alert("❌ Por favor, informe seu NOME e SOBRENOME completos para criar o Login.");
-    }
-
-    const cpf = document.getElementById('ad_cpf').value;
+    const name = document.getElementById('ad_nome').value.trim();
+    if (!fullName(name)) return alert('Informe seu nome e sobrenome completos para criar o Login.');
     loading(true);
-
     try {
-        // 🟢 2. VERIFICAÇÃO DE DUPLICIDADE AD
-        const { data: statusExistente, error: errBusca } = await supabaseClient.rpc('checar_status_solicitacao', {
-            tabela_alvo: 'ad',
-            cpf_busca: cpf
-        });
-
-        if (!errBusca && statusExistente) {
-            if (statusExistente === 'Pendente') {
-                loading(false);
-                return alert("⚠️ Sua solicitação de Login já está na fila! Por favor, aguarde o retorno da equipe de T.I.");
-            } else if (statusExistente === 'Realizado') {
-                loading(false);
-                return alert("⚠️ Já existe uma conta ativa para o seu CPF. Caso tenha esquecido a senha, acesse o suporte para reset. Se solicitou agora, aguarde o envio das credenciais.");
-            }
-        }
-
-        // 3. ENVIO DOS DADOS
-        const dados = {
-            nome_completo: nomeCompleto,
-            cpf: cpf,
+        await submit({
+            type: 'ad',
+            name,
+            cpf: document.getElementById('ad_cpf').value,
             email: document.getElementById('ad_email').value,
-            telefone: document.getElementById('ad_telefone').value,
-            status: 'Pendente'
-        };
-
-        const { error } = await supabaseClient.from('solicitacoes_ad').insert([dados]);
-        if (error) throw error;
-
-        alert("✅ Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.");
+            phone: document.getElementById('ad_telefone').value,
+            website: document.getElementById('ad_website').value
+        });
+        mostrarAviso('Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.', 'sucesso');
         document.getElementById('form-ad').reset();
         window.mostrarTela('menu-principal');
-    } catch (err) {
-        alert("❌ Erro ao enviar solicitação: " + err.message);
+    } catch (error) {
+        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
     } finally {
         loading(false);
     }
-};
-
-// ==========================================
-// 🛡️ BLINDAGEM DE FRONT-END (ANTI-CURIOSOS)
-// ==========================================
-
-// 1. Bloqueia botão direito, F12, Inspecionar e Ver Código Fonte
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', e => {
-    if (e.key === 'F12' || 
-       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-       (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-        return false;
-    }
-});
-
-// 2. Armadilha de Debugger (Inferniza a vida de quem abrir o console)
-setInterval(function() {
-    const inicio = new Date().getTime();
-    debugger; // Se o console estiver aberto, o navegador trava aqui
-    const fim = new Date().getTime();
-    
-    // Se ele demorou mais de 100ms para passar da linha de cima, o painel está aberto!
-    if (fim - inicio > 100) {
-        document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>Acesso Negado. Atividade Suspeita Detectada.</h1>";
-        window.location.replace("about:blank"); // Expulsa o usuário
-    }
-}, 2000);
-
-// Função que neutraliza códigos maliciosos digitados pelos usuários
-window.limparTexto = function(texto) {
-    if (!texto) return '';
-    return texto.toString().replace(/[&<>'"]/g, function(tag) {
-        const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
-        return chars[tag] || tag;
-    });
 };
