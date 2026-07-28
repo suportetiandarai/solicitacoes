@@ -3,17 +3,27 @@ const CONFIG = Object.freeze({
     spreadsheetId: '1EVGXL_NUV_koXR1mH_X4z_YqVmsaLytCX84ONYTzD9I',
     sheetName: 'Respostas ao formulário 1',
     cpfColumn: 7,
-    statusColumn: 17
+    statusColumn: 17,
+    statusUpdatedAtColumn: 20,
+    completedAtColumn: 21,
+    lastColumn: 21
   },
   training: {
     spreadsheetId: '1vcNxK3VQ4TwIxdHWWPCQcyYY6nS1MfRLFw9c8lxza_U',
-    sheetName: 'Respostas ao formulário 1'
+    sheetName: 'Respostas ao formulário 1',
+    statusColumn: 11,
+    statusUpdatedAtColumn: 15,
+    completedAtColumn: 16,
+    lastColumn: 16
   },
   ad: {
     spreadsheetId: '1_j13tglIFAWDcvLx2dsMGLugThdrrzbjKHYNt9H5Qj4',
     sheetName: 'SOLICITACÕES AD',
     cpfColumn: 3,
-    statusColumn: 6
+    statusColumn: 6,
+    statusUpdatedAtColumn: 8,
+    completedAtColumn: 9,
+    lastColumn: 9
   },
   councilFolderId: '1pLZiumhRNHvkdGPPTRLhSySFjb4OH1rpZPmJodg1Vb5Jekwls8XeLvGOwH-nztnldshUsWz0',
   documentFolderId: '1YbGK3ReFpsx1H3cZEOL_CGRO_2vIBUhVvUYhgO-kv18D0t3r2v7T2RXWeF3KubSQevyjXzfC'
@@ -27,6 +37,22 @@ function response_(body) {
 
 function normalizeCpf_(value) {
   return String(value || '').replace(/\D/g, '');
+}
+
+function normalizeStatus_(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function isCompletedStatus_(source, status) {
+  const normalized = normalizeStatus_(status);
+  if (source === 'ad') return ['realizado', 'ja_existente'].includes(normalized);
+  return ['realizado', 'cadastrado', 'concluido'].includes(normalized);
 }
 
 function duplicateCode_(sheet, cpf, cpfColumn, statusColumn) {
@@ -95,6 +121,8 @@ function appendTimed_(payload) {
     documentLinks,
     'PENDENTE',
     '',
+    '',
+    new Date(),
     ''
   ]);
   return { ok: true, protocol: 'TIMED-' + stamp };
@@ -118,6 +146,8 @@ function appendTraining_(payload) {
     '',
     '',
     '',
+    '',
+    new Date(),
     ''
   ]);
   return { ok: true, protocol: 'TREINAMENTO-' + stamp };
@@ -130,7 +160,7 @@ function appendAd_(payload) {
   const duplicate = duplicateCode_(sheet, cpf, config.cpfColumn, config.statusColumn);
   if (duplicate) return { ok: false, code: duplicate };
   const stamp = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyyMMdd_HHmmss');
-  sheet.appendRow([new Date(), payload.name, cpf, payload.phone, payload.email, 'PENDENTE', '']);
+  sheet.appendRow([new Date(), payload.name, cpf, payload.phone, payload.email, 'PENDENTE', '', new Date(), '']);
   return { ok: true, protocol: 'AD-' + stamp };
 }
 
@@ -167,4 +197,53 @@ function testConfiguration() {
   DriveApp.getFolderById(CONFIG.councilFolderId).getName();
   DriveApp.getFolderById(CONFIG.documentFolderId).getName();
   return 'CONFIGURATION_OK';
+}
+
+function validateSheet_(source) {
+  const config = CONFIG[source];
+  const sheet = SpreadsheetApp.openById(config.spreadsheetId).getSheetByName(config.sheetName);
+  if (!sheet) throw new Error('Aba não encontrada: ' + source);
+}
+
+function configureStatusAutomation() {
+  ['timed', 'training', 'ad'].forEach(validateSheet_);
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === 'handleStatusEdit') ScriptApp.deleteTrigger(trigger);
+  });
+  ['timed', 'training', 'ad'].forEach(function(source) {
+    ScriptApp.newTrigger('handleStatusEdit')
+      .forSpreadsheet(CONFIG[source].spreadsheetId)
+      .onEdit()
+      .create();
+  });
+  return 'STATUS_AUTOMATION_OK';
+}
+
+function handleStatusEdit(event) {
+  if (!event || !event.range) return;
+  const spreadsheetId = event.source.getId();
+  const source = ['timed', 'training', 'ad'].find(function(candidate) {
+    return CONFIG[candidate].spreadsheetId === spreadsheetId;
+  });
+  if (!source) return;
+  const config = CONFIG[source];
+  const range = event.range;
+  if (range.getSheet().getName() !== config.sheetName ||
+      range.getColumn() !== config.statusColumn ||
+      range.getRow() < 2) return;
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Não foi possível registrar a alteração de status.');
+  try {
+    const now = new Date();
+    for (let offset = 0; offset < range.getNumRows(); offset += 1) {
+      const row = range.getRow() + offset;
+      const status = range.getSheet().getRange(row, config.statusColumn).getDisplayValue();
+      range.getSheet().getRange(row, config.statusUpdatedAtColumn).setValue(now);
+      range.getSheet().getRange(row, config.completedAtColumn)
+        .setValue(isCompletedStatus_(source, status) ? now : '');
+    }
+  } finally {
+    lock.releaseLock();
+  }
 }

@@ -1,5 +1,129 @@
 const INTAKE_URL = 'https://cctygrudsyoowuotlyfo.supabase.co/functions/v1/google-sheets-intake';
 const MAX_FILE_BYTES = 350_000;
+const PORTAL_SERVICES = Object.freeze([
+    {
+        id: 'cadastro-timed',
+        title: 'Solicitar Cadastro TIMED',
+        description: 'Solicite o cadastro de novos colaboradores no sistema TIMED.',
+        action: 'Abrir formulário',
+        type: 'internal',
+        screen: 'tela-cadastro',
+        icon: 'clipboard'
+    },
+    {
+        id: 'login-ad',
+        title: 'Solicitar Login de Computador',
+        description: 'Solicite usuário e senha para acessar os computadores da rede.',
+        action: 'Abrir formulário',
+        type: 'internal',
+        screen: 'tela-login-ad',
+        icon: 'computer'
+    },
+    {
+        id: 'treinamento',
+        title: 'Solicitar Treinamento',
+        description: 'Agende um treinamento sobre TIMED para você ou seu setor.',
+        action: 'Abrir formulário',
+        type: 'internal',
+        screen: 'tela-treinamento',
+        icon: 'training'
+    },
+    {
+        id: 'suporte',
+        title: 'Abrir Chamado (Suporte)',
+        description: 'Acesse o canal de suporte para registrar e acompanhar seu chamado.',
+        action: 'Acessar suporte',
+        type: 'external',
+        url: 'https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R',
+        icon: 'support',
+        accent: 'whatsapp'
+    },
+    {
+        id: 'ficha-cadastral-scnes',
+        title: 'FICHA CADASTRAL SCNES',
+        description: 'Preencha ou atualize as informações necessárias para o cadastro SCNES.',
+        action: 'Acessar formulário',
+        type: 'external',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSeFDKRmd9reMR23-mzcGnbiOy43PE_XRag0qC4Za2ZN2CFGtg/viewform',
+        icon: 'identification'
+    },
+    {
+        id: 'pesquisa-satisfacao-ti',
+        title: 'PESQUISA DE SATISFAÇÃO T.I',
+        description: 'Avalie o atendimento e os serviços prestados pela equipe de T.I.',
+        action: 'Responder pesquisa',
+        type: 'external',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSdD4E3ywPsZPFx7Eg8nm-dZQ_p2s_TMnWkwvroaZvTwI_g9Ug/viewform',
+        icon: 'feedback'
+    }
+]);
+
+const SERVICE_ICONS = Object.freeze({
+    clipboard: '<path d="M9 5h6m-5-2h4a1 1 0 0 1 1 1v2H9V4a1 1 0 0 1 1-1Z"/><path d="M9 5H7a2 2 0 0 0-2 2v12h14V7a2 2 0 0 0-2-2h-2M8 11h8M8 15h5"/>',
+    computer: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4M7 8h10"/>',
+    training: '<path d="m3 9 9-5 9 5-9 5-9-5Z"/><path d="M7 12v5c3 2 7 2 10 0v-5M21 9v6"/>',
+    support: '<path d="M4 13a8 8 0 0 1 16 0"/><path d="M4 13v5h4v-5H4Zm12 0v5h4v-5h-4ZM8 21h5a3 3 0 0 0 3-3"/>',
+    identification: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5.5 16c.8-2 4.2-2 5 0M13 10h5m-5 4h5"/>',
+    feedback: '<path d="M21 12a8 8 0 1 1-4-6.9"/><path d="m8.5 12 2.2 2.2L21 4"/><path d="M16 19v2l-3-2"/>'
+});
+
+let navigationLocked = false;
+
+function serviceIcon(name, label) {
+    const paths = SERVICE_ICONS[name] || SERVICE_ICONS.clipboard;
+    return `<span class="service-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${paths}</svg></span><span class="sr-only">${label}</span>`;
+}
+
+function serviceCardContent(service) {
+    return `
+        ${serviceIcon(service.icon, `Ícone de ${service.title}`)}
+        <span class="service-copy">
+            <strong class="service-title">${service.title}</strong>
+            <span class="service-description">${service.description}</span>
+        </span>
+        <span class="service-action">${service.action}<span aria-hidden="true">→</span></span>
+    `;
+}
+
+function openInternalService(service) {
+    if (navigationLocked) return;
+    navigationLocked = true;
+    const target = document.getElementById(service.screen);
+    if (!target) {
+        console.error(`Tela não encontrada para o serviço: ${service.id}`);
+        window.mostrarAviso('Não foi possível abrir este formulário. Tente novamente.', 'erro');
+        navigationLocked = false;
+        return;
+    }
+    window.mostrarTela(service.screen);
+    window.setTimeout(() => { navigationLocked = false; }, 250);
+}
+
+function renderPortalServices() {
+    const grid = document.getElementById('menu-principal');
+    if (!grid) {
+        console.error('Container do Portal de Serviços não encontrado.');
+        return;
+    }
+    const fragment = document.createDocumentFragment();
+    PORTAL_SERVICES.forEach(service => {
+        const element = document.createElement(service.type === 'external' ? 'a' : 'button');
+        element.className = `menu-card${service.accent ? ` ${service.accent}` : ''}`;
+        element.dataset.serviceId = service.id;
+        element.setAttribute('aria-label', `${service.action}: ${service.title}`);
+        element.innerHTML = serviceCardContent(service);
+        if (service.type === 'external') {
+            element.href = service.url;
+            element.target = '_blank';
+            element.rel = 'noopener noreferrer';
+        } else {
+            element.type = 'button';
+            element.addEventListener('click', () => openInternalService(service));
+        }
+        fragment.appendChild(element);
+    });
+    grid.replaceChildren(fragment);
+}
 
 window.mostrarAviso = function(mensagem, tipo = 'info') {
     const container = document.getElementById('toast-container');
@@ -39,8 +163,15 @@ window.mostrarTela = function(idTela) {
     }
     const target = document.getElementById(idTela);
     if (target) {
-        target.style.display = idTela === 'menu-principal' ? 'flex' : 'block';
+        target.style.display = idTela === 'menu-principal' ? 'grid' : 'block';
         window.scrollTo(0, 0);
+        const focusTarget = idTela === 'menu-principal'
+            ? target.querySelector('.menu-card')
+            : target.querySelector('h2');
+        if (focusTarget) {
+            if (focusTarget.matches('h2')) focusTarget.tabIndex = -1;
+            focusTarget.focus({ preventScroll: true });
+        }
     }
 };
 
@@ -99,7 +230,7 @@ function fullName(value) {
     return String(value || '').trim().split(/\s+/).length >= 2;
 }
 
-function location(prefix) {
+function buildLocation(prefix) {
     const building = document.getElementById(`${prefix}_predio`).value;
     const floor = document.getElementById(`${prefix}_andar`).value;
     const sector = document.getElementById(`${prefix}_setor`).value.trim();
@@ -159,11 +290,21 @@ function errorMessage(code, type) {
 }
 
 async function submit(payload) {
-    const response = await fetch(INTAKE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
+    let response;
+    try {
+        response = await fetch(INTAKE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(30_000)
+        });
+    } catch (error) {
+        if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+            throw new Error('A solicitação demorou mais que o esperado. Verifique sua conexão e tente novamente.');
+        }
+        console.error('Falha de rede ao enviar solicitação:', error?.name || 'erro');
+        throw new Error('Não foi possível enviar agora. Verifique sua conexão e tente novamente.');
+    }
     const result = await response.json().catch(() => ({ ok: false, code: 'INVALID_RESPONSE' }));
     if (!response.ok || !result.ok) {
         const error = new Error(errorMessage(result.code, payload.type));
@@ -185,7 +326,7 @@ window.enviarTreinamento = async function(event) {
             email: document.getElementById('tr_email').value,
             phone: document.getElementById('tr_telefone').value,
             jobTitle: document.getElementById('tr_cargo').value,
-            location: location('tr'),
+            location: buildLocation('tr'),
             topic: document.getElementById('tr_tema').value,
             desiredAt: document.getElementById('tr_data').value,
             website: document.getElementById('tr_website').value
@@ -220,7 +361,7 @@ window.enviarCadastro = async function(event) {
             specialty: document.getElementById('cad_especialidade').value,
             employment: document.getElementById('cad_vinculo').value,
             registration: document.getElementById('cad_matricula').value,
-            location: location('cad'),
+            location: buildLocation('cad'),
             councilFiles: await prepareFiles(document.getElementById('cad_foto_conselho')),
             documentFiles: await prepareFiles(document.getElementById('cad_foto_documento')),
             website: document.getElementById('cad_website').value
@@ -259,3 +400,9 @@ window.enviarLoginAD = async function(event) {
         loading(false);
     }
 };
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderPortalServices, { once: true });
+} else {
+    renderPortalServices();
+}
