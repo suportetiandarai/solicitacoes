@@ -2,7 +2,7 @@ const INTAKE_URL = 'https://cctygrudsyoowuotlyfo.supabase.co/functions/v1/google
 const MAX_FILE_BYTES = 300_000;
 const MAX_TOTAL_FILES = 4;
 const MAX_REQUEST_BYTES = 2_300_000;
-const REQUEST_TIMEOUT_MS = 70_000;
+const REQUEST_TIMEOUT_MS = 120_000;
 const PORTAL_SERVICES = Object.freeze([
     {
         id: 'cadastro-timed',

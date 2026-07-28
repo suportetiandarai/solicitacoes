@@ -71,7 +71,7 @@ test('portal preserva os quatro serviços existentes e adiciona SCNES e satisfa�
 test('script não redefine window.location e possui timeout de envio', () => {
   assert.doesNotMatch(app, /function location\s*\(/);
   assert.match(app, /function buildLocation\s*\(/);
-  assert.match(app, /const REQUEST_TIMEOUT_MS = 70_000/);
+  assert.match(app, /const REQUEST_TIMEOUT_MS = 120_000/);
   assert.match(app, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
   assert.match(app, /finally\s*\{\s*loading\(false\)/);
 });
