@@ -1,5 +1,8 @@
 const INTAKE_URL = 'https://cctygrudsyoowuotlyfo.supabase.co/functions/v1/google-sheets-intake';
-const MAX_FILE_BYTES = 350_000;
+const MAX_FILE_BYTES = 300_000;
+const MAX_TOTAL_FILES = 4;
+const MAX_REQUEST_BYTES = 2_300_000;
+const REQUEST_TIMEOUT_MS = 70_000;
 const PORTAL_SERVICES = Object.freeze([
     {
         id: 'cadastro-timed',
@@ -290,13 +293,19 @@ function errorMessage(code, type) {
 }
 
 async function submit(payload) {
+    const serializedPayload = JSON.stringify(payload);
+    if (new TextEncoder().encode(serializedPayload).byteLength > MAX_REQUEST_BYTES) {
+        const error = new Error(errorMessage('PAYLOAD_TOO_LARGE', payload.type));
+        error.code = 'PAYLOAD_TOO_LARGE';
+        throw error;
+    }
     let response;
     try {
         response = await fetch(INTAKE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(30_000)
+            body: serializedPayload,
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
         });
     } catch (error) {
         if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
@@ -347,6 +356,13 @@ window.enviarCadastro = async function(event) {
     if (!fullName(name)) return alert('Informe seu nome e sobrenome completos para o cadastro.');
     loading(true);
     try {
+        const councilFiles = await prepareFiles(document.getElementById('cad_foto_conselho'));
+        const documentFiles = await prepareFiles(document.getElementById('cad_foto_documento'));
+        if (councilFiles.length + documentFiles.length > MAX_TOTAL_FILES) {
+            const error = new Error(`Envie no máximo ${MAX_TOTAL_FILES} arquivos no total.`);
+            error.code = 'PAYLOAD_TOO_LARGE';
+            throw error;
+        }
         const payload = {
             type: 'timed',
             name,
@@ -362,8 +378,8 @@ window.enviarCadastro = async function(event) {
             employment: document.getElementById('cad_vinculo').value,
             registration: document.getElementById('cad_matricula').value,
             location: buildLocation('cad'),
-            councilFiles: await prepareFiles(document.getElementById('cad_foto_conselho')),
-            documentFiles: await prepareFiles(document.getElementById('cad_foto_documento')),
+            councilFiles,
+            documentFiles,
             website: document.getElementById('cad_website').value
         };
         await submit(payload);

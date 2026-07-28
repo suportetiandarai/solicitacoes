@@ -71,6 +71,22 @@ test('portal preserva os quatro serviços existentes e adiciona SCNES e satisfa�
 test('script não redefine window.location e possui timeout de envio', () => {
   assert.doesNotMatch(app, /function location\s*\(/);
   assert.match(app, /function buildLocation\s*\(/);
-  assert.match(app, /AbortSignal\.timeout\(30_000\)/);
+  assert.match(app, /const REQUEST_TIMEOUT_MS = 70_000/);
+  assert.match(app, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
   assert.match(app, /finally\s*\{\s*loading\(false\)/);
+});
+
+test('envio TIMED respeita o limite total do endpoint antes da requisição', () => {
+  assert.match(app, /const MAX_TOTAL_FILES = 4/);
+  assert.match(app, /const MAX_REQUEST_BYTES = 2_300_000/);
+  assert.match(app, /new TextEncoder\(\)\.encode\(serializedPayload\)\.byteLength/);
+  assert.match(app, /councilFiles\.length \+ documentFiles\.length > MAX_TOTAL_FILES/);
+});
+
+test('portal utiliza tema claro institucional', () => {
+  const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(style, /Tema claro institucional/);
+  assert.match(style, /--card-bg:\s*#ffffff/);
+  assert.match(style, /linear-gradient\(180deg,\s*#f8fbff/);
+  assert.match(style, /\.menu-card,\s*\n\.form-section\s*\{\s*\n\s*background:\s*#ffffff/);
 });

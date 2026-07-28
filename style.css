@@ -439,3 +439,173 @@ button.submit-btn:disabled { background: #334155; color: #94a3b8; cursor: not-al
     .toast-container { bottom: 20px; right: 20px; left: 20px; align-items: center; }
     .toast { min-width: 100%; }
 }
+
+/* Tema claro institucional, alinhado aos dashboards do GESTÃO TI. */
+:root {
+    --bg-dark: #eef4fb;
+    --bg-darker: #f8fafc;
+    --primary: #2563eb;
+    --primary-glow: rgba(37, 99, 235, 0.18);
+    --secondary: #4f46e5;
+    --success: #059669;
+    --success-glow: rgba(5, 150, 105, 0.18);
+    --danger: #dc2626;
+    --card-bg: #ffffff;
+    --text-main: #172033;
+    --text-muted: #5f6f85;
+    --border-color: #d9e3f0;
+}
+
+body {
+    background:
+        radial-gradient(circle at 50% -20%, rgba(147, 197, 253, 0.35), transparent 42%),
+        linear-gradient(180deg, #f8fbff 0%, #edf3f9 100%);
+}
+
+header {
+    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 58%, #f7f5ff 100%);
+    border-bottom-color: #d8e4f2;
+    box-shadow: 0 8px 28px rgba(30, 64, 175, 0.09);
+}
+
+header p,
+.service-description {
+    color: #5f6f85;
+}
+
+.portal-eyebrow,
+.service-action {
+    color: #2563eb;
+}
+
+.menu-card,
+.form-section {
+    background: #ffffff;
+    border-color: #d9e3f0;
+    box-shadow: 0 12px 30px rgba(34, 64, 108, 0.11);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.menu-card::before {
+    background: linear-gradient(to right, transparent, rgba(37, 99, 235, 0.06), transparent);
+}
+
+.menu-card:hover,
+.menu-card:focus-visible {
+    background: #ffffff;
+    box-shadow: 0 16px 36px rgba(37, 99, 235, 0.17);
+}
+
+.service-icon {
+    color: #2563eb;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.menu-card:hover .service-icon,
+.menu-card:focus-visible .service-icon {
+    background: #dbeafe;
+}
+
+.menu-card.whatsapp {
+    border-color: #bbf7d0;
+}
+
+.menu-card.whatsapp .service-icon,
+.menu-card.whatsapp .service-action {
+    color: #15803d;
+}
+
+.menu-card.whatsapp .service-icon {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.menu-card.whatsapp:hover {
+    background: #ffffff;
+    box-shadow: 0 16px 36px rgba(22, 163, 74, 0.14);
+}
+
+.btn-voltar {
+    background: #f8fafc;
+    border-color: #d9e3f0;
+    color: #475569;
+}
+
+.btn-voltar:hover {
+    background: #fef2f2;
+}
+
+input,
+select,
+textarea {
+    background: #ffffff;
+    color: #172033;
+    border-color: #cbd8e8;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    background: #ffffff;
+}
+
+select option {
+    background: #ffffff;
+    color: #172033;
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: none;
+    opacity: 0.7;
+}
+
+input[type="file"] {
+    background: #f8fbff;
+    border-color: #93c5fd;
+}
+
+input[type="file"]:hover {
+    background: #f5f3ff;
+    color: #172033;
+}
+
+button.submit-btn:disabled {
+    background: #dbe4ef;
+    color: #718096;
+}
+
+#loader {
+    background: rgba(248, 250, 252, 0.94);
+}
+
+.spinner {
+    border-color: #dbeafe;
+    border-top-color: var(--primary);
+    border-right-color: var(--secondary);
+}
+
+.alert-warning {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.toast {
+    background: #ffffff;
+    color: #172033;
+    border-color: #d9e3f0;
+    box-shadow: 0 12px 32px rgba(34, 64, 108, 0.18);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.toast-content span:last-child {
+    color: #5f6f85;
+}
