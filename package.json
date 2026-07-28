@@ -1,0 +1,13 @@
+{
+  "name": "solicitacoes-gestao-ti",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "node --check app.js",
+    "test": "node --test tests/*.test.cjs",
+    "validate": "npm run lint && npm test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
