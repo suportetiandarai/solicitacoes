@@ -12,36 +12,15 @@
 </head>
 <body>
 
-    <header>
-        <h1>Central de Serviços T.I - Andaraí</h1>
-        <p>Preencha os formulários abaixo ou acesse nosso canal de suporte.</p>
+    <header class="portal-header">
+        <span class="portal-eyebrow">GESTÃO TI</span>
+        <h1>Portal de Serviços</h1>
+        <p>Acesse os formulários e serviços disponíveis.</p>
     </header>
 
-    <div class="container">
+    <main class="container">
         
-        <div id="menu-principal" class="menu-grid">
-            <div class="menu-card" onclick="mostrarTela('tela-cadastro')">
-                <h3>📝 Solicitar Cadastro TIMED</h3>
-                <p>Para novos colaboradores. Requer envio de dados funcionais.</p>
-            </div>
-
-            <div class="menu-card" onclick="mostrarTela('tela-login-ad')">
-                <h3>💻 Solicitar Login de Computador</h3>
-                <p>Solicite seu usuário e senha para acessar os computadores da rede.</p>
-            </div>
-            
-            <div class="menu-card" onclick="mostrarTela('tela-treinamento')">
-                <h3>🎓 Solicitar Treinamento</h3>
-                <p>Agende um treinamento sobre TIMED para você ou seu setor.</p>
-            </div>
-
-            <a href="https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R" target="_blank" style="text-decoration: none;">
-                <div class="menu-card whatsapp">
-                    <h3>💬 Abrir Chamado (Suporte)</h3>
-                    <p>Faça sua abertura de chamado diretamente no grupo</p>
-                </div>
-            </a>
-        </div>
+        <nav id="menu-principal" class="menu-grid" aria-label="Serviços disponíveis"></nav>
 
         <div id="tela-cadastro" class="form-section">
             <div class="form-header">
@@ -411,7 +390,7 @@
             <p>Processando e conectando, aguarde...</p>
         </div>
 
-    </div>
+    </main>
 
     <div id="toast-container" class="toast-container"></div>
 
