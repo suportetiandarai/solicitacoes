@@ -39,18 +39,31 @@ function normalizeCpf_(value) {
   return String(value || '').replace(/\D/g, '');
 }
 
-function normalizeStatus_(value) {
-  return String(value || '')
+function normalizeRequestStatus_(value) {
+  const normalized = String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
+  const aliases = {
+    realizados: 'realizado',
+    realizada: 'realizado',
+    realizadas: 'realizado',
+    pendentes: 'pendente',
+    nao_realizados: 'nao_realizado',
+    nao_realizadas: 'nao_realizado',
+    agendados: 'agendado',
+    agendadas: 'agendado',
+    nao_agendados: 'nao_agendado',
+    nao_agendadas: 'nao_agendado'
+  };
+  return aliases[normalized] || normalized;
 }
 
 function isCompletedStatus_(source, status) {
-  const normalized = normalizeStatus_(status);
+  const normalized = normalizeRequestStatus_(status);
   if (source === 'ad') return ['realizado', 'ja_existente'].includes(normalized);
   return ['realizado', 'cadastrado', 'concluido'].includes(normalized);
 }
@@ -93,6 +106,34 @@ function saveFiles_(files, folderId, prefix) {
   }).join('|||');
 }
 
+function findNextAvailableRequestRow_(sheet, keyColumns) {
+  const firstDataRow = 2;
+  const maxRows = Math.max(firstDataRow, sheet.getMaxRows());
+  const height = maxRows - firstDataRow + 1;
+  const keyValues = keyColumns.map(function(column) {
+    return sheet.getRange(firstDataRow, column, height, 1).getDisplayValues();
+  });
+  let lastOccupiedRow = firstDataRow - 1;
+  for (let offset = 0; offset < height; offset += 1) {
+    const occupied = keyValues.some(function(values) {
+      return String(values[offset][0] || '').trim() !== '';
+    });
+    if (occupied) lastOccupiedRow = firstDataRow + offset;
+  }
+  const nextRow = lastOccupiedRow + 1;
+  if (nextRow > sheet.getMaxRows()) sheet.insertRowsAfter(sheet.getMaxRows(), 1);
+  return nextRow;
+}
+
+function writeRequestRow_(sheet, config, values, keyColumns) {
+  if (values.length !== config.lastColumn) {
+    throw new Error('Quantidade de colunas inválida para a solicitação.');
+  }
+  const row = findNextAvailableRequestRow_(sheet, keyColumns);
+  sheet.getRange(row, 1, 1, config.lastColumn).setValues([values]);
+  return row;
+}
+
 function appendTimed_(payload) {
   const config = CONFIG.timed;
   const sheet = SpreadsheetApp.openById(config.spreadsheetId).getSheetByName(config.sheetName);
@@ -102,7 +143,7 @@ function appendTimed_(payload) {
   const stamp = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyyMMdd_HHmmss');
   const councilLinks = saveFiles_(payload.councilFiles, CONFIG.councilFolderId, cpf + '_conselho_' + stamp);
   const documentLinks = saveFiles_(payload.documentFiles, CONFIG.documentFolderId, cpf + '_documento_' + stamp);
-  sheet.appendRow([
+  writeRequestRow_(sheet, config, [
     new Date(),
     payload.email,
     payload.phone,
@@ -119,12 +160,12 @@ function appendTimed_(payload) {
     payload.location,
     councilLinks,
     documentLinks,
-    'PENDENTE',
     '',
     '',
-    new Date(),
+    '',
+    '',
     ''
-  ]);
+  ], [1, 4, 7]);
   return { ok: true, protocol: 'TIMED-' + stamp };
 }
 
@@ -132,7 +173,7 @@ function appendTraining_(payload) {
   const config = CONFIG.training;
   const sheet = SpreadsheetApp.openById(config.spreadsheetId).getSheetByName(config.sheetName);
   const stamp = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyyMMdd_HHmmss');
-  sheet.appendRow([
+  writeRequestRow_(sheet, config, [
     new Date(),
     payload.email,
     payload.name,
@@ -147,9 +188,9 @@ function appendTraining_(payload) {
     '',
     '',
     '',
-    new Date(),
+    '',
     ''
-  ]);
+  ], [1, 3]);
   return { ok: true, protocol: 'TREINAMENTO-' + stamp };
 }
 
@@ -160,7 +201,12 @@ function appendAd_(payload) {
   const duplicate = duplicateCode_(sheet, cpf, config.cpfColumn, config.statusColumn);
   if (duplicate) return { ok: false, code: duplicate };
   const stamp = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyyMMdd_HHmmss');
-  sheet.appendRow([new Date(), payload.name, cpf, payload.phone, payload.email, 'PENDENTE', '', new Date(), '']);
+  writeRequestRow_(
+    sheet,
+    config,
+    [new Date(), payload.name, cpf, payload.phone, payload.email, '', '', '', ''],
+    [1, 2, 3]
+  );
   return { ok: true, protocol: 'AD-' + stamp };
 }
 
