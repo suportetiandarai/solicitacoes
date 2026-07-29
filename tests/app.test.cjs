@@ -43,6 +43,29 @@ test('Apps Script exige segredo e usa lock antes de gravar', () => {
   assert.match(script, /tryLock/);
 });
 
+test('novas solicitações não são gravadas como pendentes', () => {
+  assert.doesNotMatch(script, /sheet\.appendRow/);
+  assert.doesNotMatch(script, /\[\s*new Date\(\)[\s\S]{0,500}'PENDENTE'/);
+  assert.match(script, /writeRequestRow_\(sheet, config/);
+});
+
+test('próxima linha considera somente dados reais e a escrita ocorre sob lock', () => {
+  assert.match(script, /function findNextAvailableRequestRow_/);
+  assert.match(script, /getDisplayValues\(\)/);
+  assert.match(script, /String\(values\[offset\]\[0\] \|\| ''\)\.trim\(\) !== ''/);
+  assert.match(script, /findNextAvailableRequestRow_\(sheet, keyColumns\)/);
+  assert.match(script, /if \(!lock\.tryLock\(15000\)\)/);
+});
+
+test('status inicial e timestamps permanecem vazios até ação do técnico', () => {
+  assert.match(script, /\], \[1, 4, 7\]\)/);
+  assert.match(script, /\], \[1, 3\]\)/);
+  assert.match(script, /\[new Date\(\), payload\.name, cpf, payload\.phone, payload\.email, '', '', '', ''\]/);
+  assert.match(script, /handleStatusEdit/);
+  assert.match(script, /statusUpdatedAtColumn/);
+  assert.match(script, /completedAtColumn/);
+});
+
 test('cards do portal usam configuração central e controles semânticos', () => {
   assert.match(app, /const PORTAL_SERVICES = Object\.freeze/);
   assert.match(app, /document\.createElement\(service\.type === 'external' \? 'a' : 'button'\)/);
