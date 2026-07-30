@@ -118,6 +118,55 @@ function renderPortalServices() {
     grid.replaceChildren(fragment);
 }
 
+function normalizeJobRole(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function getAvailableJobRoles() {
+    const source = document.getElementById('job-role-options');
+    const seen = new Set();
+
+    return Array.from(source?.content.querySelectorAll('option') || [])
+        .map((option) => normalizeJobRole(option.value))
+        .filter((role) => {
+            const normalizedKey = role
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLocaleLowerCase('pt-BR');
+
+            if (!role || seen.has(normalizedKey)) {
+                return false;
+            }
+
+            seen.add(normalizedKey);
+            return true;
+        });
+}
+
+function loadJobRoleOptions() {
+    const roles = getAvailableJobRoles();
+
+    document.querySelectorAll('[data-job-role-select]').forEach((select) => {
+        const currentValue = normalizeJobRole(select.value);
+        const options = document.createDocumentFragment();
+        options.appendChild(new Option('Selecione o cargo', ''));
+
+        roles.forEach((role) => {
+            options.appendChild(new Option(role, role));
+        });
+
+        select.replaceChildren(options);
+        if (roles.includes(currentValue)) {
+            select.value = currentValue;
+        }
+    });
+}
+
+function initializePortal() {
+    loadJobRoleOptions();
+    renderPortalServices();
+}
+
 let portalNotificationTimer = null;
 
 window.showPortalNotification = function({
@@ -452,7 +501,7 @@ window.enviarLoginAD = async function(event) {
 };
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderPortalServices, { once: true });
+    document.addEventListener('DOMContentLoaded', initializePortal, { once: true });
 } else {
-    renderPortalServices();
+    initializePortal();
 }

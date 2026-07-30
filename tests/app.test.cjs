@@ -132,6 +132,37 @@ test('formulário AD exige Cargo e Setor e envia os dois campos', () => {
   assert.match(script, /sector: \['SETOR'\]/);
 });
 
+test('TIMED, Treinamento e Login de Computador compartilham a mesma fonte de cargos', () => {
+  for (const fieldId of ['cad_cargo', 'tr_cargo', 'ad_cargo']) {
+    assert.match(
+      html,
+      new RegExp(`<select id="${fieldId}" data-job-role-select required>`),
+    );
+  }
+
+  assert.equal((html.match(/id="job-role-options"/g) || []).length, 1);
+  assert.equal((html.match(/<option value="">Selecione o cargo<\/option>/g) || []).length, 3);
+  assert.doesNotMatch(html, /id="lista-cargos"|list="lista-cargos"/);
+  assert.match(app, /function normalizeJobRole\(/);
+  assert.match(app, /function getAvailableJobRoles\(/);
+  assert.match(app, /function loadJobRoleOptions\(/);
+  assert.match(app, /querySelectorAll\('\[data-job-role-select\]'\)/);
+  assert.match(app, /const seen = new Set\(\)/);
+});
+
+test('os três cargos selecionados são enviados sem deslocar os campos do AD', () => {
+  assert.match(app, /jobTitle: document\.getElementById\('cad_cargo'\)\.value/);
+  assert.match(app, /jobTitle: document\.getElementById\('tr_cargo'\)\.value/);
+  assert.match(
+    app,
+    /cpf: document\.getElementById\('ad_cpf'\)\.value,[\s\S]*phone: document\.getElementById\('ad_telefone'\)\.value,[\s\S]*jobTitle: document\.getElementById\('ad_cargo'\)\.value,[\s\S]*sector: document\.getElementById\('ad_setor'\)\.value/,
+  );
+  assert.match(script, /values\[columns\.cargo - 1\] = payload\.jobTitle/);
+  assert.match(script, /const cpf = normalizeCpf_\(payload\.cpf\)/);
+  assert.match(script, /values\[columns\.cpf - 1\] = cpf/);
+  assert.match(script, /values\[columns\.phone - 1\] = payload\.phone/);
+});
+
 test('data da solicitação AD preserva e exibe data e hora completas', () => {
   assert.match(script, /values\[columns\.requestedAt - 1\] = new Date\(\)/);
   assert.match(script, /const row = writeRequestRow_/);
