@@ -116,8 +116,9 @@ test('portal utiliza tema claro institucional', () => {
   assert.match(style, /\.menu-card,\s*\n\.form-section\s*\{\s*\n\s*background:\s*#ffffff/);
 });
 
-test('cabeçalho mantém somente o título do Portal de Serviços', () => {
-  assert.match(html, /<h1>Portal de Serviços<\/h1>/);
+test('cabeçalho mantém somente o título oficial do Portal de Solicitações', () => {
+  assert.match(html, /<title>Portal de Solicitações T\.I Rio Saúde - Hospital do Andaraí<\/title>/);
+  assert.match(html, /<h1>Portal de Solicitações T\.I Rio Saúde - Hospital do Andaraí<\/h1>/);
   assert.doesNotMatch(html, /Acesse os formulários e serviços disponíveis/);
   assert.doesNotMatch(html, />GESTÃO TI<\/span>/);
 });
@@ -135,4 +136,25 @@ test('portal usa o azul escuro institucional e a nova descrição TIMED', () => 
   const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(style, /--primary:\s*#0d5770/);
   assert.match(app, /Solicite o cadastro de novos colaboradores no Prontuário Eletrônico\./);
+});
+
+test('envio usa mensagem de andamento e notificação única no topo por três segundos', () => {
+  const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(html, /<p>Solicitação em Andamento<\/p>/);
+  assert.doesNotMatch(html, /Conectando|conectando/);
+  assert.match(app, /window\.showPortalNotification/);
+  assert.match(app, /container\.replaceChildren\(\)/);
+  assert.match(app, /duration = 3000/);
+  assert.match(app, /clearTimeout\(portalNotificationTimer\)/);
+  assert.match(app, /Solicitação enviada com sucesso\./);
+  assert.match(app, /Não foi possível enviar a solicitação\. Tente novamente\./);
+  assert.match(style, /\.toast-container\s*\{[\s\S]*top:\s*24px/);
+  assert.match(style, /\.toast-close/);
+});
+
+test('aviso AD inclui Trauma e concordância solicitada', () => {
+  assert.match(
+    html,
+    /UPI e UPE 3 Andar Ambulatório \/ Trauma, a senha e o usuário são padrão\. Solicite diretamente à chefia do setor\./,
+  );
 });
