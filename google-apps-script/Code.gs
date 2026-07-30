@@ -19,11 +19,19 @@ const CONFIG = Object.freeze({
   ad: {
     spreadsheetId: '1_j13tglIFAWDcvLx2dsMGLugThdrrzbjKHYNt9H5Qj4',
     sheetName: 'SOLICITACÕES AD',
-    cpfColumn: 3,
-    statusColumn: 6,
-    statusUpdatedAtColumn: 8,
-    completedAtColumn: 9,
-    lastColumn: 9
+    headers: {
+      requestedAt: ['DATA DA SOLICITAÇÃO'],
+      name: ['NOME'],
+      cargo: ['CARGO'],
+      sector: ['SETOR'],
+      cpf: ['CPF'],
+      phone: ['CELULAR'],
+      email: ['E-MAIL', 'EMAIL'],
+      status: ['STATUS'],
+      observations: ['OBSERVAÇÕES', 'OBSERVACOES'],
+      statusUpdatedAt: ['STATUS_UPDATED_AT'],
+      completedAt: ['COMPLETED_AT']
+    }
   },
   councilFolderId: '1pLZiumhRNHvkdGPPTRLhSySFjb4OH1rpZPmJodg1Vb5Jekwls8XeLvGOwH-nztnldshUsWz0',
   documentFolderId: '1YbGK3ReFpsx1H3cZEOL_CGRO_2vIBUhVvUYhgO-kv18D0t3r2v7T2RXWeF3KubSQevyjXzfC'
@@ -57,7 +65,8 @@ function normalizeRequestStatus_(value) {
     agendados: 'agendado',
     agendadas: 'agendado',
     nao_agendados: 'nao_agendado',
-    nao_agendadas: 'nao_agendado'
+    nao_agendadas: 'nao_agendado',
+    desistencias: 'desistencia'
   };
   return aliases[normalized] || normalized;
 }
@@ -66,6 +75,41 @@ function isCompletedStatus_(source, status) {
   const normalized = normalizeRequestStatus_(status);
   if (source === 'ad') return ['realizado', 'ja_existente'].includes(normalized);
   return ['realizado', 'cadastrado', 'concluido'].includes(normalized);
+}
+
+function normalizeHeader_(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase();
+}
+
+function resolveHeaderColumns_(sheet, definitions) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0]
+    .map(normalizeHeader_);
+  const resolved = {};
+  Object.keys(definitions).forEach(function(key) {
+    const aliases = definitions[key].map(normalizeHeader_);
+    const index = headers.findIndex(function(header) {
+      return aliases.includes(header);
+    });
+    if (index < 0) throw new Error('Cabeçalho obrigatório ausente: ' + definitions[key][0]);
+    resolved[key] = index + 1;
+  });
+  return resolved;
+}
+
+function statusColumns_(source, sheet) {
+  if (source === 'ad') {
+    const columns = resolveHeaderColumns_(sheet, CONFIG.ad.headers);
+    return {
+      statusColumn: columns.status,
+      statusUpdatedAtColumn: columns.statusUpdatedAt,
+      completedAtColumn: columns.completedAt
+    };
+  }
+  return CONFIG[source];
 }
 
 function duplicateCode_(sheet, cpf, cpfColumn, statusColumn) {
@@ -197,15 +241,24 @@ function appendTraining_(payload) {
 function appendAd_(payload) {
   const config = CONFIG.ad;
   const sheet = SpreadsheetApp.openById(config.spreadsheetId).getSheetByName(config.sheetName);
+  const columns = resolveHeaderColumns_(sheet, config.headers);
   const cpf = normalizeCpf_(payload.cpf);
-  const duplicate = duplicateCode_(sheet, cpf, config.cpfColumn, config.statusColumn);
+  const duplicate = duplicateCode_(sheet, cpf, columns.cpf, columns.status);
   if (duplicate) return { ok: false, code: duplicate };
   const stamp = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyyMMdd_HHmmss');
+  const values = new Array(sheet.getLastColumn()).fill('');
+  values[columns.requestedAt - 1] = new Date();
+  values[columns.name - 1] = payload.name;
+  values[columns.cargo - 1] = payload.jobTitle;
+  values[columns.sector - 1] = payload.sector;
+  values[columns.cpf - 1] = cpf;
+  values[columns.phone - 1] = payload.phone;
+  values[columns.email - 1] = payload.email;
   writeRequestRow_(
     sheet,
-    config,
-    [new Date(), payload.name, cpf, payload.phone, payload.email, '', '', '', ''],
-    [1, 2, 3]
+    { lastColumn: values.length },
+    values,
+    [columns.requestedAt, columns.name, columns.cpf]
   );
   return { ok: true, protocol: 'AD-' + stamp };
 }
@@ -249,6 +302,7 @@ function validateSheet_(source) {
   const config = CONFIG[source];
   const sheet = SpreadsheetApp.openById(config.spreadsheetId).getSheetByName(config.sheetName);
   if (!sheet) throw new Error('Aba não encontrada: ' + source);
+  if (source === 'ad') resolveHeaderColumns_(sheet, config.headers);
 }
 
 function configureStatusAutomation() {
@@ -275,8 +329,9 @@ function handleStatusEdit(event) {
   if (!source) return;
   const config = CONFIG[source];
   const range = event.range;
+  const statusConfig = statusColumns_(source, range.getSheet());
   if (range.getSheet().getName() !== config.sheetName ||
-      range.getColumn() !== config.statusColumn ||
+      range.getColumn() !== statusConfig.statusColumn ||
       range.getRow() < 2) return;
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) throw new Error('Não foi possível registrar a alteração de status.');
@@ -284,9 +339,9 @@ function handleStatusEdit(event) {
     const now = new Date();
     for (let offset = 0; offset < range.getNumRows(); offset += 1) {
       const row = range.getRow() + offset;
-      const status = range.getSheet().getRange(row, config.statusColumn).getDisplayValue();
-      range.getSheet().getRange(row, config.statusUpdatedAtColumn).setValue(now);
-      range.getSheet().getRange(row, config.completedAtColumn)
+      const status = range.getSheet().getRange(row, statusConfig.statusColumn).getDisplayValue();
+      range.getSheet().getRange(row, statusConfig.statusUpdatedAtColumn).setValue(now);
+      range.getSheet().getRange(row, statusConfig.completedAtColumn)
         .setValue(isCompletedStatus_(source, status) ? now : '');
     }
   } finally {

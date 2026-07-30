@@ -7,7 +7,7 @@ const PORTAL_SERVICES = Object.freeze([
     {
         id: 'cadastro-timed',
         title: 'Solicitar Cadastro TIMED',
-        description: 'Solicite o cadastro de novos colaboradores no sistema TIMED.',
+        description: 'Solicite o cadastro de novos colaboradores no Prontuário Eletrônico.',
         action: 'Abrir formulário',
         type: 'internal',
         screen: 'tela-cadastro',
@@ -43,21 +43,12 @@ const PORTAL_SERVICES = Object.freeze([
     },
     {
         id: 'ficha-cadastral-scnes',
-        title: 'FICHA CADASTRAL SCNES',
+        title: 'Ficha Cadastral Scnes',
         description: 'Preencha ou atualize as informações necessárias para o cadastro SCNES.',
         action: 'Acessar formulário',
         type: 'external',
         url: 'https://docs.google.com/forms/d/e/1FAIpQLSeFDKRmd9reMR23-mzcGnbiOy43PE_XRag0qC4Za2ZN2CFGtg/viewform',
         icon: 'identification'
-    },
-    {
-        id: 'pesquisa-satisfacao-ti',
-        title: 'PESQUISA DE SATISFAÇÃO T.I',
-        description: 'Avalie o atendimento e os serviços prestados pela equipe de T.I.',
-        action: 'Responder pesquisa',
-        type: 'external',
-        url: 'https://docs.google.com/forms/d/e/1FAIpQLSdD4E3ywPsZPFx7Eg8nm-dZQ_p2s_TMnWkwvroaZvTwI_g9Ug/viewform',
-        icon: 'feedback'
     }
 ]);
 
@@ -66,8 +57,7 @@ const SERVICE_ICONS = Object.freeze({
     computer: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4M7 8h10"/>',
     training: '<path d="m3 9 9-5 9 5-9 5-9-5Z"/><path d="M7 12v5c3 2 7 2 10 0v-5M21 9v6"/>',
     support: '<path d="M4 13a8 8 0 0 1 16 0"/><path d="M4 13v5h4v-5H4Zm12 0v5h4v-5h-4ZM8 21h5a3 3 0 0 0 3-3"/>',
-    identification: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5.5 16c.8-2 4.2-2 5 0M13 10h5m-5 4h5"/>',
-    feedback: '<path d="M21 12a8 8 0 1 1-4-6.9"/><path d="m8.5 12 2.2 2.2L21 4"/><path d="M16 19v2l-3-2"/>'
+    identification: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5.5 16c.8-2 4.2-2 5 0M13 10h5m-5 4h5"/>'
 });
 
 let navigationLocked = false;
@@ -405,6 +395,8 @@ window.enviarLoginAD = async function(event) {
             cpf: document.getElementById('ad_cpf').value,
             email: document.getElementById('ad_email').value,
             phone: document.getElementById('ad_telefone').value,
+            jobTitle: document.getElementById('ad_cargo').value,
+            sector: document.getElementById('ad_setor').value,
             website: document.getElementById('ad_website').value
         });
         mostrarAviso('Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.', 'sucesso');

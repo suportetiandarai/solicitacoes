@@ -21,7 +21,8 @@ test('avisos de duplicidade TIMED e AD permanecem', () => {
   assert.match(app, /DUPLICATE_COMPLETED/);
   assert.match(script, /duplicateCode_/);
   assert.match(script, /cpfColumn: 7/);
-  assert.match(script, /cpfColumn: 3/);
+  assert.match(script, /cpf: \['CPF'\]/);
+  assert.match(script, /duplicateCode_\(sheet, cpf, columns\.cpf, columns\.status\)/);
 });
 
 test('upload TIMED preserva conselho e documento nas pastas do Drive', () => {
@@ -60,7 +61,8 @@ test('próxima linha considera somente dados reais e a escrita ocorre sob lock',
 test('status inicial e timestamps permanecem vazios até ação do técnico', () => {
   assert.match(script, /\], \[1, 4, 7\]\)/);
   assert.match(script, /\], \[1, 3\]\)/);
-  assert.match(script, /\[new Date\(\), payload\.name, cpf, payload\.phone, payload\.email, '', '', '', ''\]/);
+  assert.match(script, /new Array\(sheet\.getLastColumn\(\)\)\.fill\(''\)/);
+  assert.doesNotMatch(script, /values\[columns\.status - 1\]\s*=/);
   assert.match(script, /handleStatusEdit/);
   assert.match(script, /statusUpdatedAtColumn/);
   assert.match(script, /completedAtColumn/);
@@ -76,19 +78,19 @@ test('cards do portal usam configuração central e controles semânticos', () =
   assert.doesNotMatch(html, /class="menu-card" onclick=/);
 });
 
-test('portal preserva os quatro serviços existentes e adiciona SCNES e satisfação', () => {
+test('portal preserva os quatro serviços existentes, mantém SCNES e remove satisfação', () => {
   for (const serviceId of [
     'cadastro-timed',
     'login-ad',
     'treinamento',
     'suporte',
-    'ficha-cadastral-scnes',
-    'pesquisa-satisfacao-ti'
+    'ficha-cadastral-scnes'
   ]) {
     assert.match(app, new RegExp(`id: '${serviceId}'`));
   }
+  assert.match(app, /title: 'Ficha Cadastral Scnes'/);
   assert.match(app, /1FAIpQLSeFDKRmd9reMR23-mzcGnbiOy43PE_XRag0qC4Za2ZN2CFGtg\/viewform/);
-  assert.match(app, /1FAIpQLSdD4E3ywPsZPFx7Eg8nm-dZQ_p2s_TMnWkwvroaZvTwI_g9Ug\/viewform/);
+  assert.doesNotMatch(app, /pesquisa-satisfacao-ti|1FAIpQLSdD4E3ywPsZPFx7Eg8nm-dZQ_p2s_TMnWkwvroaZvTwI_g9Ug/);
 });
 
 test('script não redefine window.location e possui timeout de envio', () => {
@@ -114,7 +116,23 @@ test('portal utiliza tema claro institucional', () => {
   assert.match(style, /\.menu-card,\s*\n\.form-section\s*\{\s*\n\s*background:\s*#ffffff/);
 });
 
-test('cabeçalho identifica o Portal de Serviços do Hospital do Andaraí', () => {
-  assert.match(html, /<h1>Portal de Serviços - Hospital do Andaraí<\/h1>/);
+test('cabeçalho mantém somente o título do Portal de Serviços', () => {
+  assert.match(html, /<h1>Portal de Serviços<\/h1>/);
+  assert.doesNotMatch(html, /Acesse os formulários e serviços disponíveis/);
   assert.doesNotMatch(html, />GESTÃO TI<\/span>/);
+});
+
+test('formulário AD exige Cargo e Setor e envia os dois campos', () => {
+  assert.match(html, /id="ad_cargo"[^>]*required/);
+  assert.match(html, /id="ad_setor"[^>]*required/);
+  assert.match(app, /jobTitle: document\.getElementById\('ad_cargo'\)\.value/);
+  assert.match(app, /sector: document\.getElementById\('ad_setor'\)\.value/);
+  assert.match(script, /cargo: \['CARGO'\]/);
+  assert.match(script, /sector: \['SETOR'\]/);
+});
+
+test('portal usa o azul escuro institucional e a nova descrição TIMED', () => {
+  const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(style, /--primary:\s*#0d5770/);
+  assert.match(app, /Solicite o cadastro de novos colaboradores no Prontuário Eletrônico\./);
 });

@@ -444,9 +444,9 @@ button.submit-btn:disabled { background: #334155; color: #94a3b8; cursor: not-al
 :root {
     --bg-dark: #eef4fb;
     --bg-darker: #f8fafc;
-    --primary: #2563eb;
+    --primary: #0d5770;
     --primary-glow: rgba(37, 99, 235, 0.18);
-    --secondary: #4f46e5;
+    --secondary: #42b9eb;
     --success: #059669;
     --success-glow: rgba(5, 150, 105, 0.18);
     --danger: #dc2626;
@@ -468,6 +468,13 @@ header {
     box-shadow: 0 8px 28px rgba(30, 64, 175, 0.09);
 }
 
+header h1 {
+    margin-bottom: 0;
+    background: none;
+    color: var(--primary);
+    -webkit-text-fill-color: var(--primary);
+}
+
 header p,
 .service-description {
     color: #5f6f85;
@@ -475,7 +482,7 @@ header p,
 
 .portal-eyebrow,
 .service-action {
-    color: #2563eb;
+    color: var(--primary);
 }
 
 .menu-card,
@@ -498,9 +505,13 @@ header p,
 }
 
 .service-icon {
-    color: #2563eb;
+    color: var(--primary);
     background: #eff6ff;
     border-color: #bfdbfe;
+}
+
+.service-title {
+    color: var(--primary);
 }
 
 .menu-card:hover .service-icon,
