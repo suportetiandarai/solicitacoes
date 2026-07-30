@@ -254,12 +254,14 @@ function appendAd_(payload) {
   values[columns.cpf - 1] = cpf;
   values[columns.phone - 1] = payload.phone;
   values[columns.email - 1] = payload.email;
-  writeRequestRow_(
+  const row = writeRequestRow_(
     sheet,
     { lastColumn: values.length },
     values,
     [columns.requestedAt, columns.name, columns.cpf]
   );
+  sheet.getRange(row, columns.requestedAt)
+    .setNumberFormat('dd/MM/yyyy HH:mm:ss');
   return { ok: true, protocol: 'AD-' + stamp };
 }
 
