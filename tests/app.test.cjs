@@ -132,6 +132,12 @@ test('formulário AD exige Cargo e Setor e envia os dois campos', () => {
   assert.match(script, /sector: \['SETOR'\]/);
 });
 
+test('data da solicitação AD preserva e exibe data e hora completas', () => {
+  assert.match(script, /values\[columns\.requestedAt - 1\] = new Date\(\)/);
+  assert.match(script, /const row = writeRequestRow_/);
+  assert.match(script, /getRange\(row, columns\.requestedAt\)[\s\S]*setNumberFormat\('dd\/MM\/yyyy HH:mm:ss'\)/);
+});
+
 test('portal usa o azul escuro institucional e a nova descrição TIMED', () => {
   const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(style, /--primary:\s*#0d5770/);
