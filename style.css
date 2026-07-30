@@ -410,14 +410,17 @@ button.submit-btn:disabled { background: #334155; color: #94a3b8; cursor: not-al
    SISTEMA DE TOASTS (AVISOS) FUTURISTAS
    ========================================== */
 .toast-container {
-    position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 10000;
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 15px;
+    width: min(92vw, 620px); z-index: 10000; pointer-events: none;
 }
 
 .toast {
     background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc; padding: 16px 20px; border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc; padding: 20px 22px; border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px;
-    min-width: 300px; max-width: 400px; transform: translateX(120%);
+    width: 100%; min-height: 76px; transform: translateY(-140%);
+    pointer-events: auto;
     animation: slideInToast 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -426,18 +429,31 @@ button.submit-btn:disabled { background: #334155; color: #94a3b8; cursor: not-al
 .toast.aviso { border-left: 4px solid #f59e0b; box-shadow: 0 5px 20px rgba(245, 158, 11, 0.2); }
 
 .toast-icon { font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
-.toast-content { display: flex; flex-direction: column; }
-.toast-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; letter-spacing: 0.5px; }
-.toast-content span:last-child { font-size: 13px; color: #cbd5e1; }
+.toast-content { display: flex; flex: 1; flex-direction: column; }
+.toast-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; letter-spacing: 0.3px; }
+.toast-content span:last-child { font-size: 15px; line-height: 1.45; color: #cbd5e1; }
+
+.toast-close {
+    width: 40px; height: 40px; flex: 0 0 40px; border: 0; border-radius: 50%;
+    background: transparent; color: inherit; font: 700 27px/1 Inter, sans-serif;
+    cursor: pointer;
+}
+
+.toast-close:hover,
+.toast-close:focus-visible {
+    background: rgba(15, 87, 112, 0.1);
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
 
 .toast.hiding { animation: slideOutToast 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-@keyframes slideInToast { from { transform: translateX(120%); } to { transform: translateX(0); } }
-@keyframes slideOutToast { from { transform: translateX(0); } to { transform: translateX(120%); opacity: 0; } }
+@keyframes slideInToast { from { transform: translateY(-140%); } to { transform: translateY(0); } }
+@keyframes slideOutToast { from { transform: translateY(0); } to { transform: translateY(-140%); opacity: 0; } }
 
 @media (max-width: 600px) {
-    .toast-container { bottom: 20px; right: 20px; left: 20px; align-items: center; }
-    .toast { min-width: 100%; }
+    .toast-container { top: 12px; width: calc(100vw - 24px); }
+    .toast { min-height: 72px; padding: 16px; }
 }
 
 /* Tema claro institucional, alinhado aos dashboards do GESTÃO TI. */

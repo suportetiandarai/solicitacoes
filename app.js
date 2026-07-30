@@ -118,26 +118,53 @@ function renderPortalServices() {
     grid.replaceChildren(fragment);
 }
 
-window.mostrarAviso = function(mensagem, tipo = 'info') {
+let portalNotificationTimer = null;
+
+window.showPortalNotification = function({
+    type = 'info',
+    message = '',
+    duration = 3000
+} = {}) {
     const container = document.getElementById('toast-container');
     if (!container) return;
+    if (portalNotificationTimer) clearTimeout(portalNotificationTimer);
+    container.replaceChildren();
     const toast = document.createElement('div');
-    toast.className = `toast ${tipo}`;
+    toast.className = `toast ${type}`;
+    toast.setAttribute('role', type === 'erro' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', type === 'erro' ? 'assertive' : 'polite');
     const titles = { erro: 'Não foi possível enviar', sucesso: 'Tudo certo!', aviso: 'Atenção', info: 'Sistema' };
     const content = document.createElement('div');
     content.className = 'toast-content';
     const title = document.createElement('span');
     title.className = 'toast-title';
-    title.textContent = titles[tipo] || titles.info;
-    const message = document.createElement('span');
-    message.textContent = String(mensagem || '');
-    content.append(title, message);
-    toast.appendChild(content);
-    container.appendChild(toast);
-    setTimeout(() => {
+    title.textContent = titles[type] || titles.info;
+    const messageElement = document.createElement('span');
+    messageElement.textContent = String(message || '');
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'toast-close';
+    close.setAttribute('aria-label', 'Fechar notificação');
+    close.textContent = '×';
+    const dismiss = () => {
+        if (portalNotificationTimer) clearTimeout(portalNotificationTimer);
+        portalNotificationTimer = null;
         toast.classList.add('hiding');
         toast.addEventListener('animationend', () => toast.remove(), { once: true });
-    }, 5000);
+    };
+    close.addEventListener('click', dismiss);
+    content.append(title, messageElement);
+    toast.append(content, close);
+    container.appendChild(toast);
+    portalNotificationTimer = setTimeout(dismiss, duration);
+};
+
+window.mostrarAviso = function(mensagem, tipo = 'info') {
+    window.showPortalNotification({
+        type: tipo,
+        message: mensagem,
+        duration: 3000
+    });
 };
 
 window.alert = function(mensagem) {
@@ -330,11 +357,16 @@ window.enviarTreinamento = async function(event) {
             desiredAt: document.getElementById('tr_data').value,
             website: document.getElementById('tr_website').value
         });
-        mostrarAviso('Solicitação de treinamento enviada com sucesso!', 'sucesso');
+        mostrarAviso('Solicitação enviada com sucesso.', 'sucesso');
         document.getElementById('form-tr').reset();
         window.mostrarTela('menu-principal');
     } catch (error) {
-        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
+        mostrarAviso(
+            error.code?.startsWith('DUPLICATE_')
+                ? error.message
+                : 'Não foi possível enviar a solicitação. Tente novamente.',
+            error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro'
+        );
     } finally {
         loading(false);
     }
@@ -373,11 +405,16 @@ window.enviarCadastro = async function(event) {
             website: document.getElementById('cad_website').value
         };
         await submit(payload);
-        mostrarAviso('Cadastro enviado com sucesso!', 'sucesso');
+        mostrarAviso('Solicitação enviada com sucesso.', 'sucesso');
         document.getElementById('form-cad').reset();
         window.mostrarTela('menu-principal');
     } catch (error) {
-        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
+        mostrarAviso(
+            error.code?.startsWith('DUPLICATE_')
+                ? error.message
+                : 'Não foi possível enviar a solicitação. Tente novamente.',
+            error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro'
+        );
     } finally {
         loading(false);
     }
@@ -399,11 +436,16 @@ window.enviarLoginAD = async function(event) {
             sector: document.getElementById('ad_setor').value,
             website: document.getElementById('ad_website').value
         });
-        mostrarAviso('Solicitação de login enviada com sucesso! Aguarde o retorno da equipe de T.I.', 'sucesso');
+        mostrarAviso('Solicitação enviada com sucesso.', 'sucesso');
         document.getElementById('form-ad').reset();
         window.mostrarTela('menu-principal');
     } catch (error) {
-        mostrarAviso(error.message, error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro');
+        mostrarAviso(
+            error.code?.startsWith('DUPLICATE_')
+                ? error.message
+                : 'Não foi possível enviar a solicitação. Tente novamente.',
+            error.code?.startsWith('DUPLICATE_') ? 'aviso' : 'erro'
+        );
     } finally {
         loading(false);
     }
