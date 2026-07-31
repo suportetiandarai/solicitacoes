@@ -5,6 +5,16 @@ const MAX_REQUEST_BYTES = 2_300_000;
 const REQUEST_TIMEOUT_MS = 120_000;
 const PORTAL_SERVICES = Object.freeze([
     {
+        id: 'suporte',
+        title: 'Abra seu chamado',
+        description: 'Acesse o canal para realizar a abertura do seu chamado.',
+        action: 'Acessar suporte',
+        type: 'external',
+        url: 'https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R',
+        icon: 'support',
+        accent: 'whatsapp'
+    },
+    {
         id: 'cadastro-timed',
         title: 'Solicitar Cadastro TIMED',
         description: 'Solicite o cadastro de novos colaboradores no Prontuário Eletrônico.',
@@ -16,7 +26,7 @@ const PORTAL_SERVICES = Object.freeze([
     {
         id: 'login-ad',
         title: 'Solicitar Login de Computador',
-        description: 'Solicite usuário e senha para acessar os computadores da rede.',
+        description: '⚠️ Atenção: Para os andares 2 / 3 / 10 UPI / UPE 3 Andar Ambulatório / Trauma, a senha e o usuário são padrão. Solicite diretamente à chefia do setor.',
         action: 'Abrir formulário',
         type: 'internal',
         screen: 'tela-login-ad',
@@ -25,21 +35,11 @@ const PORTAL_SERVICES = Object.freeze([
     {
         id: 'treinamento',
         title: 'Solicitar Treinamento',
-        description: 'Agende um treinamento sobre TIMED para você ou seu setor.',
+        description: 'Agende um treinamento sobre TIMED (Prontuário Eletrônico).',
         action: 'Abrir formulário',
         type: 'internal',
         screen: 'tela-treinamento',
         icon: 'training'
-    },
-    {
-        id: 'suporte',
-        title: 'Abrir Chamado (Suporte)',
-        description: 'Acesse o canal de suporte para registrar e acompanhar seu chamado.',
-        action: 'Acessar suporte',
-        type: 'external',
-        url: 'https://chat.whatsapp.com/BP3FAoRrdva8NfVKnBn72R',
-        icon: 'support',
-        accent: 'whatsapp'
     },
     {
         id: 'ficha-cadastral-scnes',
