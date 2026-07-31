@@ -78,8 +78,10 @@
                 <div class="row">
                     <div class="col form-group">
                         <label for="cad_cargo">Cargo *</label>
-                        <input type="text" id="cad_cargo" list="lista-cargos" placeholder="Digite para pesquisar seu cargo..." autocomplete="off" required>
-                        <datalist id="lista-cargos">
+                        <select id="cad_cargo" data-job-role-select required>
+                            <option value="">Selecione o cargo</option>
+                        </select>
+                        <template id="job-role-options">
                             <option value="DIRETOR ADMINISTRATIVO"></option>
                             <option value="DIRETOR DE SERVICOS DE SAUDE"></option>
                             <option value="GERENTE DE SERVICOS DE SAUDE"></option>
@@ -191,7 +193,7 @@
                             <option value="TÉCNICO DE ENFERMAGEM - ENDOSCOPIA"></option>
                             <option value="ENFERMEIRO - HEMODIÁLISE"></option>
                             <option value="MÉDICO RADIOLOGISTA INTERVENCIONISTA"></option>
-                        </datalist>
+                        </template>
                     </div>
                     <div class="col form-group">
                         <label for="cad_especialidade">Especialidade</label>
@@ -313,7 +315,9 @@
                 <div class="row">
                     <div class="col form-group">
                         <label for="ad_cargo">Cargo *</label>
-                        <input type="text" id="ad_cargo" placeholder="Ex: Técnico de Enfermagem" required>
+                        <select id="ad_cargo" data-job-role-select required>
+                            <option value="">Selecione o cargo</option>
+                        </select>
                     </div>
                     <div class="col form-group">
                         <label for="ad_setor">Setor *</label>
@@ -351,7 +355,9 @@
                     </div>
                     <div class="col form-group">
                         <label for="tr_cargo">Cargo / Função *</label>
-                        <input type="text" id="tr_cargo" placeholder="Ex: Técnico de Enfermagem" required>
+                        <select id="tr_cargo" data-job-role-select required>
+                            <option value="">Selecione o cargo</option>
+                        </select>
                     </div>
                 </div>
 
