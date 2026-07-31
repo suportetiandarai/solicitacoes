@@ -93,6 +93,31 @@ test('portal preserva os quatro serviços existentes, mantém SCNES e remove sat
   assert.doesNotMatch(app, /pesquisa-satisfacao-ti|1FAIpQLSdD4E3ywPsZPFx7Eg8nm-dZQ_p2s_TMnWkwvroaZvTwI_g9Ug/);
 });
 
+test('portal exibe os cinco cards na ordem operacional solicitada', () => {
+  const orderedIds = ['suporte', 'cadastro-timed', 'login-ad', 'treinamento', 'ficha-cadastral-scnes'];
+  const positions = orderedIds.map((id) => app.indexOf(`id: '${id}'`));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual(positions, [...positions].sort((left, right) => left - right));
+  assert.match(app, /title: 'Abra seu chamado'/);
+  assert.match(app, /Acesse o canal para realizar a abertura do seu chamado\./);
+  assert.match(app, /UPI \/ UPE 3 Andar Ambulatório \/ Trauma, a senha e o usuário são padrão/);
+  assert.match(app, /Agende um treinamento sobre TIMED \(Prontuário Eletrônico\)\./);
+});
+
+test('grid organiza três cards na primeira linha e dois centralizados na segunda', () => {
+  const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(style, /\.menu-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,/);
+  assert.match(style, /\.menu-card\s*\{\s*grid-column:\s*span 2;/);
+  assert.match(style, /\.menu-card:nth-child\(4\)\s*\{\s*grid-column:\s*2 \/ span 2;/);
+  assert.match(style, /@media \(max-width: 1100px\)[\s\S]*repeat\(2,/);
+  assert.match(style, /@media \(max-width: 600px\)[\s\S]*grid-template-columns:\s*1fr/);
+});
+
+test('treinamento usa a lista central de cargos e o novo exemplo de tema', () => {
+  assert.match(html, /<select id="tr_cargo" data-job-role-select required>/);
+  assert.match(html, /id="tr_tema" placeholder="Ex: Evolução de Paciente Interno, Prontuário, Etc\.\.\."/);
+});
+
 test('script não redefine window.location e possui timeout de envio', () => {
   assert.doesNotMatch(app, /function location\s*\(/);
   assert.match(app, /function buildLocation\s*\(/);
